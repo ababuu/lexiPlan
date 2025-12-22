@@ -1,0 +1,66 @@
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const csurf = require("csurf");
+const { protect } = require("./middleware/auth");
+
+const app = express();
+
+// 1. Global Middleware
+// Allow credentials for cookie-based auth. In production, set explicit origin.
+app.use(cors({ origin: true, credentials: true }));
+app.use(cookieParser());
+app.use(express.json()); // Essential for parsing AI/PDF JSON data
+
+// CSRF protection using double-submit cookie pattern.
+// csurf will store the secret in a cookie and expose req.csrfToken().
+const csrfProtection = csurf({
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  },
+});
+
+// Apply CSRF protection globally so non-GET requests require a valid token.
+app.use(csrfProtection);
+
+// Endpoint to fetch CSRF token for single-page apps. Client should call this
+// and then include the token in `X-CSRF-Token` header for state-changing requests.
+app.get("/api/csrf-token", (req, res) => {
+  try {
+    res.json({ csrfToken: req.csrfToken() });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to generate CSRF token" });
+  }
+});
+
+// 2. Database Connection with Retry Logic (Critical for Docker)
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`❌ Error: ${error.message}`);
+    setTimeout(connectDB, 5000); // Retry after 5s if Mongo isn't up yet
+  }
+};
+connectDB();
+
+// 3. Routes (We will build these next)
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/projects", protect, require("./routes/projectRoutes"));
+
+// 4. Global Error Handler (The Senior Touch)
+app.use((err, req, res, next) => {
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode).json({
+    message: err.message,
+    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+  });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
