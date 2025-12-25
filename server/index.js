@@ -24,8 +24,18 @@ const csrfProtection = csurf({
   },
 });
 
-// Apply CSRF protection globally so non-GET requests require a valid token.
-app.use(csrfProtection);
+// Apply CSRF protection but skip it for auth endpoints that need to be
+// callable before a CSRF token exists (register/login/logout).
+app.use((req, res, next) => {
+  const csrfExemptPaths = [
+    "/api/auth/register",
+    "/api/auth/login",
+    "/api/auth/logout",
+  ];
+
+  if (csrfExemptPaths.includes(req.path)) return next();
+  return csrfProtection(req, res, next);
+});
 
 // Endpoint to fetch CSRF token for single-page apps. Client should call this
 // and then include the token in `X-CSRF-Token` header for state-changing requests.
