@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const orgSchema = new mongoose.Schema(
   {
@@ -11,4 +11,4 @@ const orgSchema = new mongoose.Schema(
 
 orgSchema.index({ name: 1 });
 
-module.exports = mongoose.model("Organization", orgSchema);
+export default mongoose.model("Organization", orgSchema);

@@ -1,13 +1,14 @@
-const express = require("express");
-const router = express.Router();
-const { requireActiveOrg } = require("../middleware/tenant");
-const {
+import express from "express";
+import { requireActiveOrg } from "../middleware/tenant.js";
+import {
   createProject,
   getProjects,
   getProjectById,
   updateProject,
   deleteProject,
-} = require("../controllers/projectController");
+} from "../controllers/projectController.js";
+
+const router = express.Router();
 
 // protect middleware is applied at app-level in index.js
 // enforce tenant is active for these routes
@@ -20,4 +21,4 @@ router
   .put(updateProject)
   .delete(deleteProject);
 
-module.exports = router;
+export default router;

@@ -1,10 +1,13 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-const csurf = require("csurf");
-const { protect } = require("./middleware/auth");
+import "dotenv/config";
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import csurf from "csurf";
+import { protect } from "./middleware/auth.js";
+import authRoutes from "./routes/authRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
+import documentRoutes from "./routes/documentRoutes.js";
 
 const app = express();
 
@@ -59,9 +62,9 @@ const connectDB = async () => {
 };
 connectDB();
 
-// 3. Routes (We will build these next)
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/projects", protect, require("./routes/projectRoutes"));
+app.use("/api/auth", authRoutes);
+app.use("/api/projects", protect, projectRoutes);
+app.use("/api/documents", protect, documentRoutes);
 
 // 4. Global Error Handler (The Senior Touch)
 app.use((err, req, res, next) => {

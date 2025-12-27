@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const projectSchema = new mongoose.Schema(
   {
@@ -21,5 +21,4 @@ const projectSchema = new mongoose.Schema(
 );
 
 projectSchema.index({ orgId: 1, title: 1 });
-
-module.exports = mongoose.model("Project", projectSchema);
+export default mongoose.model("Project", projectSchema);

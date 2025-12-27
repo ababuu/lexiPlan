@@ -1,6 +1,6 @@
-const User = require("../models/User");
-const Organization = require("../models/Organization");
-const generateToken = require("../utils/generateToken");
+import User from "../models/User.js";
+import Organization from "../models/Organization.js";
+import generateToken from "../utils/generateToken.js";
 
 const cookieOptions = (req) => ({
   httpOnly: true,
@@ -9,7 +9,7 @@ const cookieOptions = (req) => ({
   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
 });
 
-const register = async (req, res, next) => {
+export const register = async (req, res, next) => {
   try {
     const { email, password, orgName } = req.body;
     if (!email || !password || !orgName)
@@ -43,7 +43,7 @@ const register = async (req, res, next) => {
   }
 };
 
-const login = async (req, res, next) => {
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
@@ -71,9 +71,9 @@ const login = async (req, res, next) => {
   }
 };
 
-const logout = (req, res) => {
+export const logout = (req, res) => {
   res.clearCookie("token", cookieOptions(req));
   res.json({ message: "Logged out" });
 };
 
-module.exports = { register, login, logout };
+export default { register, login, logout };

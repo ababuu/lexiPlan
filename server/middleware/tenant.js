@@ -1,4 +1,4 @@
-const Organization = require("../models/Organization");
+import Organization from "../models/Organization.js";
 
 // Requires `protect` to have run and set req.orgId
 const requireActiveOrg = async (req, res, next) => {
@@ -20,4 +20,4 @@ const requireActiveOrg = async (req, res, next) => {
   }
 };
 
-module.exports = { requireActiveOrg };
+export { requireActiveOrg };

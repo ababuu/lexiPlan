@@ -1,7 +1,7 @@
-const Project = require("../models/Project");
+import Project from "../models/Project.js";
 
 // Create project (scoped to req.orgId)
-const createProject = async (req, res, next) => {
+export const createProject = async (req, res, next) => {
   try {
     const { title, description, status, meta } = req.body;
     const orgId = req.orgId;
@@ -22,7 +22,7 @@ const createProject = async (req, res, next) => {
 };
 
 // List projects for tenant
-const getProjects = async (req, res, next) => {
+export const getProjects = async (req, res, next) => {
   try {
     const orgId = req.orgId;
     const projects = await Project.find({ orgId }).sort({ createdAt: -1 });
@@ -33,7 +33,7 @@ const getProjects = async (req, res, next) => {
 };
 
 // Get single project scoped to org
-const getProjectById = async (req, res, next) => {
+export const getProjectById = async (req, res, next) => {
   try {
     const orgId = req.orgId;
     const id = req.params.id;
@@ -46,7 +46,7 @@ const getProjectById = async (req, res, next) => {
 };
 
 // Update project (scoped)
-const updateProject = async (req, res, next) => {
+export const updateProject = async (req, res, next) => {
   try {
     const orgId = req.orgId;
     const id = req.params.id;
@@ -64,7 +64,7 @@ const updateProject = async (req, res, next) => {
 };
 
 // Delete project (scoped)
-const deleteProject = async (req, res, next) => {
+export const deleteProject = async (req, res, next) => {
   try {
     const orgId = req.orgId;
     const id = req.params.id;
@@ -76,7 +76,7 @@ const deleteProject = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export default {
   createProject,
   getProjects,
   getProjectById,
