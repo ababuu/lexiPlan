@@ -10,7 +10,9 @@ export default function requestLogger(req, res, next) {
       recordError();
     }
     // Minimal log line — looks like a real middleware
-    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`);
+    console.log(
+      `${req.method} ${req.originalUrl} ${res.statusCode} - ${duration}ms`
+    );
   });
   next();
 }
