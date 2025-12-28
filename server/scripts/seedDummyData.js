@@ -3,9 +3,7 @@ import path from "path";
 
 async function seed() {
   const out = {
-    orgs: [
-      { id: "org-temp-1", name: "Acme Temp Org", isActive: true },
-    ],
+    orgs: [{ id: "org-temp-1", name: "Acme Temp Org", isActive: true }],
     projects: [
       { id: "proj-temp-1", orgId: "org-temp-1", title: "Demo Project" },
     ],
