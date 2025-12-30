@@ -10,6 +10,3 @@ services:
     # load variables from server/.env (do NOT commit server/.env with secrets)
     env_file:
       - ./server/.env
-    environment:
-      - MONGO_URI=${MONGO_URI}
-      - JWT_SECRET=${JWT_SECRET}
