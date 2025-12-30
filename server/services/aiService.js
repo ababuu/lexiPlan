@@ -1,5 +1,5 @@
 import { OpenAIEmbeddings, ChatOpenAI } from "@langchain/openai";
-import { MongoDBAtlasVectorSearch } from "@langchain/community/vectorstores/mongodb_atlas";
+import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
 import mongoose from "mongoose";
 
 export const getContextualAnswer = async (query, orgId) => {
