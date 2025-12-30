@@ -1,5 +1,5 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
 import mongoose from "mongoose";
 
@@ -9,6 +9,7 @@ export const processDocument = async (text, docId, orgId) => {
     chunkSize: 1000,
     chunkOverlap: 200,
   });
+
   const docs = await splitter.createDocuments([text]);
 
   // 2. ADD METADATA
@@ -20,12 +21,14 @@ export const processDocument = async (text, docId, orgId) => {
     },
   }));
 
-  // 3. EMBED & STORE
+  // 3. EMBED & STORE (Gemini)
   const vectorCollection = mongoose.connection.db.collection("vectors");
 
   await MongoDBAtlasVectorSearch.fromDocuments(
     chunksWithMetadata,
-    new OpenAIEmbeddings(),
+    new GoogleGenerativeAIEmbeddings({
+      model: "text-embedding-004",
+    }),
     {
       collection: vectorCollection,
       indexName: "vector_index",
