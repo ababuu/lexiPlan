@@ -1,4 +1,6 @@
 import Project from "../models/Project.js";
+import Document from "../models/Document.js";
+import { deleteProjectVectors } from "../services/vectorService.js";
 
 // Create project (scoped to req.orgId)
 export const createProject = async (req, res, next) => {
@@ -63,14 +65,40 @@ export const updateProject = async (req, res, next) => {
   }
 };
 
-// Delete project (scoped)
+// Delete project (scoped) with cascade delete of documents and vectors
 export const deleteProject = async (req, res, next) => {
   try {
     const orgId = req.orgId;
     const id = req.params.id;
-    const project = await Project.findOneAndDelete({ _id: id, orgId });
+
+    // First, find the project to ensure it exists and belongs to the org
+    const project = await Project.findOne({ _id: id, orgId });
     if (!project) return res.status(404).json({ message: "Project not found" });
-    res.json({ message: "Project deleted" });
+
+    // Delete all vectors associated with this project's documents
+    let vectorsDeleted = 0;
+    try {
+      vectorsDeleted = await deleteProjectVectors(id, orgId);
+    } catch (vectorError) {
+      console.error("Failed to delete project vectors:", vectorError);
+      // Continue with document and project deletion even if vector deletion fails
+    }
+
+    // Delete all documents associated with this project
+    const documentDeleteResult = await Document.deleteMany({
+      projectId: id,
+      orgId,
+    });
+
+    // Delete the project itself
+    await Project.findOneAndDelete({ _id: id, orgId });
+
+    res.json({
+      message: "Project, documents, and vectors deleted successfully",
+      documentsDeleted: documentDeleteResult.deletedCount,
+      vectorsDeleted,
+      projectTitle: project.title,
+    });
   } catch (error) {
     next(error);
   }

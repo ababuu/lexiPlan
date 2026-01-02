@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -13,13 +14,14 @@ import { FolderOpen, Plus, Edit, Trash2 } from "lucide-react";
 import { projectsApi } from "../lib/api";
 
 const ProjectsView = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newProject, setNewProject] = useState({
     title: "",
     description: "",
-    status: "active",
+    status: "todo",
   });
 
   useEffect(() => {
@@ -42,7 +44,7 @@ const ProjectsView = () => {
     e.preventDefault();
     try {
       await projectsApi.createProject(newProject);
-      setNewProject({ title: "", description: "", status: "active" });
+      setNewProject({ title: "", description: "", status: "todo" });
       setShowCreateForm(false);
       loadProjects();
     } catch (error) {
@@ -56,6 +58,38 @@ const ProjectsView = () => {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const handleProjectClick = (projectId) => {
+    navigate(`/projects/${projectId}`);
+  };
+
+  const handleDeleteProject = async (e, projectId) => {
+    e.stopPropagation(); // Prevent card click
+    if (
+      window.confirm(
+        "Are you sure you want to delete this project? This will also delete all associated documents."
+      )
+    ) {
+      try {
+        const response = await projectsApi.deleteProject(projectId);
+        const data = response.data;
+
+        // Show success message with details
+        if (data.documentsDeleted > 0) {
+          alert(
+            `Project "${data.projectTitle}" deleted successfully along with ${data.documentsDeleted} associated document(s).`
+          );
+        } else {
+          alert(`Project "${data.projectTitle}" deleted successfully.`);
+        }
+
+        loadProjects();
+      } catch (error) {
+        console.error("Failed to delete project:", error);
+        alert("Failed to delete project. Please try again.");
+      }
+    }
   };
 
   if (loading) {
@@ -144,14 +178,21 @@ const ProjectsView = () => {
       {/* Projects Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => (
-          <Card key={project._id} className="hover:shadow-md transition-shadow">
+          <Card
+            key={project._id}
+            className="border border-[hsl(var(--box-border))] shadow-md rounded-[24px] dark:border-border/50 dark:shadow-none dark:rounded-lg hover:shadow-[rgba(0,30,43,0.5)_0px_12px_30px_-8px] dark:hover:shadow-none transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:border-primary/50"
+            onClick={() => handleProjectClick(project._id)}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-2">
                   <FolderOpen className="w-5 h-5 text-blue-500" />
                   <CardTitle className="text-lg">{project.title}</CardTitle>
                 </div>
-                <div className="flex space-x-1">
+                <div
+                  className="flex space-x-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Button variant="ghost" size="icon" className="h-8 w-8">
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -159,6 +200,7 @@ const ProjectsView = () => {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-red-500 hover:text-red-700"
+                    onClick={(e) => handleDeleteProject(e, project._id)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
