@@ -34,7 +34,7 @@ export const register = async (req, res, next) => {
       user: {
         id: user._id,
         email: user.email,
-        orgId: org._id,
+        orgName: org.name,
         role: user.role,
       },
     });
@@ -49,7 +49,7 @@ export const login = async (req, res, next) => {
     if (!email || !password)
       return res.status(400).json({ message: "Missing credentials" });
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate("orgId", "name");
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const isMatch = await user.matchPassword(password);
@@ -62,7 +62,7 @@ export const login = async (req, res, next) => {
       user: {
         id: user._id,
         email: user.email,
-        orgId: user.orgId,
+        orgName: user.orgId.name,
         role: user.role,
       },
     });
@@ -74,14 +74,16 @@ export const login = async (req, res, next) => {
 export const getMe = async (req, res, next) => {
   try {
     // Because 'protect' middleware already ran, req.user or req.userId is available
-    const user = await User.findById(req.userId).select("-password");
+    const user = await User.findById(req.userId)
+      .select("-password")
+      .populate("orgId", "name");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
       user: {
         id: user._id,
         email: user.email,
-        orgId: user.orgId,
+        orgName: user.orgId.name,
         role: user.role,
       },
     });
