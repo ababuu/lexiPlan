@@ -4,65 +4,80 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Light Theme - Deep Forest Tech */
+    --background: 0 0% 100%; /* White */
+    --foreground: 192 55% 20%; /* Elephant */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* White - Same as Background for boxes */
+    --card-foreground: 192 55% 20%; /* Elephant */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 192 55% 20%; /* Elephant */
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 121 35% 59%; /* Mantis - Consistent */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary: 120 30% 52%; /* Asparagus - Consistent */
+    --secondary-foreground: 0 0% 100%; /* White */
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 40% 96%; /* Light Muted */
+    --muted-foreground: 192 55% 20%; /* Elephant */
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 120 30% 52%; /* Asparagus - Consistent */
+    --accent-foreground: 0 0% 100%; /* White */
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 121 35% 59%; /* Full Mantis Border */
+    --input: 210 40% 98%; /* Light Input */
+    --ring: 121 35% 59%; /* Mantis Ring */
 
-    --radius: 0.5rem;
+    /* Navigation specific colors */
+    --nav-background: 210 40% 98%; /* Light Slate for Navbar/Sidebar */
+    --box-border: 144 14% 91%; /* Light Green Border for boxes - rgb(232, 237, 235) */
+
+    /* Brand Colors - Consistent across themes */
+    --brand-teal: 192 47% 31%; /* Calypso */
+
+    --radius: 0.75rem;
   }
 
+  /* Dark Theme - Deep Forest Tech */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 194 100% 8%; /* #001E2B - New Dark Blue Background */
+    --foreground: 0 0% 98%; /* Much Whiter Text */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 194 100% 8%; /* #001E2B - Same as Background for boxes */
+    --card-foreground: 0 0% 98%; /* Much Whiter Text */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 192 47% 31%; /* Calypso */
+    --popover-foreground: 0 0% 98%; /* Much Whiter Text */
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 121 35% 59%; /* Mantis - Consistent */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 120 30% 52%; /* Asparagus - Consistent */
+    --secondary-foreground: 0 0% 100%; /* White */
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 155 32% 31%; /* Amazon */
+    --muted-foreground: 210 40% 80%; /* Lighter text for readability */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 120 30% 52%; /* Asparagus - Consistent */
+    --accent-foreground: 0 0% 100%; /* White */
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 199 18% 29%; /* #3d4f58 - New Border Color */
+    --input: 192 47% 31%; /* Calypso */
+    --ring: 121 35% 59%; /* Mantis Ring */
+
+    /* Navigation specific colors */
+    --nav-background: 200 29% 17%; /* #1c2d38 - New Navbar/Sidebar Background */
+
+    /* Brand Colors - Consistent across themes */
+    --brand-teal: 192 47% 31%; /* Calypso */
   }
 }
 
@@ -70,7 +85,33 @@
   * {
     @apply border-border;
   }
+
+  html {
+    /* Remove forced dark mode to allow theme switching */
+    @apply scroll-smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Enhanced focus states with Mantis green */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Selection styling with theme-aware colors */
+  ::selection {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Smooth transitions for theme switching */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
   }
 }
