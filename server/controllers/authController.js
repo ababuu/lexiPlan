@@ -71,6 +71,25 @@ export const login = async (req, res, next) => {
   }
 };
 
+export const getMe = async (req, res, next) => {
+  try {
+    // Because 'protect' middleware already ran, req.user or req.userId is available
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      user: {
+        id: user._id,
+        email: user.email,
+        orgId: user.orgId,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const logout = (req, res) => {
   res.clearCookie("token", cookieOptions(req));
   res.json({ message: "Logged out" });

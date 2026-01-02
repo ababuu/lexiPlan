@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { authApi } from "../lib/api";
+import useChatStore from "./useChatStore";
 
 const useAuthStore = create((set, get) => ({
   // State
@@ -46,12 +47,23 @@ const useAuthStore = create((set, get) => ({
       const response = await authApi.login(credentials);
       const userData = response.data.user;
 
+      // Check if this is a different organization from previous session
+      const currentOrgId = get().orgId;
+      const newOrgId = userData.orgId;
+
       set({
         user: userData,
         orgId: userData.orgId,
         isAuthenticated: true,
         error: null,
       });
+
+      // Clear chat data if switching to different org
+      if (currentOrgId && currentOrgId !== newOrgId) {
+        const { clearChat, setConversations } = useChatStore.getState();
+        clearChat();
+        setConversations([]);
+      }
 
       return userData;
     } catch (error) {
@@ -97,6 +109,11 @@ const useAuthStore = create((set, get) => ({
         isAuthenticated: false,
         error: null,
       });
+
+      // Clear chat store state to prevent cross-user data leakage
+      const { clearChat, setConversations } = useChatStore.getState();
+      clearChat();
+      setConversations([]);
     }
   },
 

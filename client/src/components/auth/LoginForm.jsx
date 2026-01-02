@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -17,6 +18,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const { login, error, clearError } = useAuthStore();
 
@@ -27,7 +29,8 @@ const LoginForm = ({ onSwitchToRegister }) => {
 
     try {
       await login(formData);
-      // Auth store update will trigger navigation via App.jsx
+
+      navigate("/", { replace: true });
     } catch (error) {
       // Error is already set in the store
     } finally {

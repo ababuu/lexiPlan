@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
     orgName: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const { register, error, clearError } = useAuthStore();
 
@@ -28,7 +30,8 @@ const RegisterForm = ({ onSwitchToLogin }) => {
 
     try {
       await register(formData);
-      // Auth store update will trigger navigation via App.jsx
+      // Always navigate to home page after successful registration
+      navigate("/", { replace: true });
     } catch (error) {
       // Error is already set in the store
     } finally {
