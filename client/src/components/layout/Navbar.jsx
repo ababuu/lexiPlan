@@ -12,15 +12,14 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-[hsl(var(--nav-background))] border-b-[0.5px] border-border px-6 py-4 backdrop-blur-sm">
+    <nav className="bg-[hsl(var(--nav-background))] border-b-[0.5px] border-border px-6 py-2 backdrop-blur-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold text-foreground tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text">
-            Deep Forest AI
+        <div className="flex flex-col items-start">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text">
+            LexiPlan
           </h1>
-          <div className="hidden md:flex items-center space-x-2 text-sm text-muted-foreground">
-            <Building className="w-4 h-4" />
-            <span>Org: {user?.orgId?.slice(-8)}</span>
+          <div className="text-xs text-muted-foreground">
+            <span>Smart Document Assistant</span>
           </div>
         </div>
 

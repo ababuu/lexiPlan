@@ -110,7 +110,7 @@ const ProjectChatWidget = () => {
             className="fixed bottom-24 right-6 z-[9999]"
             style={{ width: "400px", height: "550px" }}
           >
-            <Card className="h-full flex flex-col shadow-2xl">
+            <Card className="h-full flex flex-col shadow-2xl overflow-hidden">
               {/* Header */}
               <CardHeader className="pb-3 border-b bg-gradient-to-r from-[#70c171]/10 to-[#70c171]/5">
                 <div className="flex items-center justify-between">
@@ -188,8 +188,8 @@ const ProjectChatWidget = () => {
                             </div>
 
                             {message.role === "user" && (
-                              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 mt-1">
-                                <User className="w-4 h-4 text-gray-600" />
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                                <User className="w-4 h-4 text-primary" />
                               </div>
                             )}
                           </div>

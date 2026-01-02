@@ -84,14 +84,12 @@ const ChatWindow = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <Card className="h-full flex flex-col bg-background border-primary/20 overflow-hidden shadow-xs">
       {/* Chat Header - Fixed */}
       <div className="bg-primary/5 border-b border-primary/20 p-4 backdrop-blur-sm flex-shrink-0">
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">
-            Deep Forest AI
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">LexiPlan AI</h2>
         </div>
         {activeConversationId && (
           <p className="text-xs text-muted-foreground mt-1">
@@ -239,8 +237,8 @@ const ChatWindow = () => {
                                   {formatTime(new Date(message.timestamp))}
                                 </p>
                               </div>
-                              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 shadow-sm">
-                                <User className="w-4 h-4 text-primary-foreground" />
+                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 shadow-sm">
+                                <User className="w-4 h-4 text-primary" />
                               </div>
                             </div>
                           ) : (
@@ -350,7 +348,7 @@ const ChatWindow = () => {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
