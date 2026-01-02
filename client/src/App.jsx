@@ -1,31 +1,63 @@
 import React, { useEffect } from "react";
-import AuthPage from "./pages/AuthPage";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import MainLayout from "./components/layout/MainLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LoginPage from "./pages/LoginPage";
+import HomePage from "./pages/HomePage";
+import ProjectsPage from "./pages/ProjectsPage";
+import ProjectDetailPage from "./pages/ProjectDetailPage";
+import ChatPage from "./pages/ChatPage";
+import DocumentsPage from "./pages/DocumentsPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import useAuthStore from "./store/useAuthStore";
 import "./globals.css";
 
 function App() {
-  const { isAuthenticated, isInitializing, checkAuth } = useAuthStore();
+  const { checkAuth } = useAuthStore();
 
   useEffect(() => {
     // Check authentication status on app mount
     checkAuth();
-  }, []); // Empty dependency array - only run once on mount
-
-  // Show loading spinner while checking authentication
-  if (isInitializing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  }, []);
 
   return (
-    <div className="App">{isAuthenticated ? <MainLayout /> : <AuthPage />}</div>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <BrowserRouter>
+        <div className="App">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<Navigate to="/login" replace />} />
+
+            {/* Protected Routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<HomePage />} />
+              <Route path="projects" element={<ProjectsPage />} />
+              <Route
+                path="projects/:projectId"
+                element={<ProjectDetailPage />}
+              />
+              <Route path="chat" element={<ChatPage />} />
+              <Route path="documents" element={<DocumentsPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+            </Route>
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
