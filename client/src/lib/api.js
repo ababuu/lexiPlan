@@ -73,11 +73,17 @@ export const documentsApi = {
         "Content-Type": "multipart/form-data",
       },
     }),
+  getDocuments: (projectId) => {
+    const params = projectId ? { projectId } : {};
+    return api.get("/documents", { params });
+  },
+  getDocumentById: (id) => api.get(`/documents/${id}`),
+  deleteDocument: (id) => api.delete(`/documents/${id}`),
 };
 
 // Chat API method using native fetch for SSE streaming
 export const chatApi = {
-  sendMessage: async (message, onChunk) => {
+  sendMessage: async (message, conversationId, onChunk, projectId = null) => {
     // First get CSRF token
     const csrfResponse = await fetch("/api/csrf-token", {
       credentials: "include",
@@ -91,7 +97,11 @@ export const chatApi = {
         "Content-Type": "application/json",
         "X-CSRF-Token": csrfToken,
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({
+        message,
+        ...(conversationId && { conversationId }),
+        ...(projectId && { projectId }),
+      }),
     });
 
     if (!response.ok) {
@@ -100,6 +110,7 @@ export const chatApi = {
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+    let newConversationId = null;
 
     try {
       while (true) {
@@ -112,11 +123,25 @@ export const chatApi = {
         for (const line of lines) {
           if (line.startsWith("data: ")) {
             const data = line.slice(6);
-            if (data === "[DONE]") return;
+            if (data === "[DONE]") {
+              // Return the new conversation ID if one was created
+              return { newConversationId };
+            }
 
             try {
               const parsed = JSON.parse(data);
-              onChunk(parsed);
+
+              // Handle different message types
+              if (parsed.type === "conversation_id") {
+                newConversationId = parsed.conversationId;
+              } else if (parsed.type === "content") {
+                onChunk(parsed);
+              } else if (parsed.type === "error") {
+                throw new Error(parsed.error);
+              } else if (parsed.content) {
+                // Backward compatibility for old format
+                onChunk(parsed);
+              }
             } catch (e) {
               // Skip invalid JSON chunks
             }
@@ -127,6 +152,13 @@ export const chatApi = {
       reader.releaseLock();
     }
   },
+
+  // Chat history management
+  getHistory: () => api.get("/chat/history"),
+  getProjectHistory: (projectId) =>
+    api.get(`/chat/history/project/${projectId}`),
+  getConversation: (id) => api.get(`/chat/${id}`),
+  deleteConversation: (id) => api.delete(`/chat/${id}`),
 };
 
 export default api;
