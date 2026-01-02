@@ -106,17 +106,16 @@ const ProjectDetailPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header with back button */}
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
+        <div
           onClick={() => navigate("/projects")}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 text-md font-medium text-primary cursor-pointer hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Projects
-        </Button>
+        </div>
       </div>
 
       <div className="flex justify-between items-center">
