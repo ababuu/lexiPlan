@@ -18,6 +18,15 @@ export default {
     },
     extend: {
       colors: {
+        // Deep Forest Tech Palette
+        elephant: "#143d4b",
+        calypso: "#256d7a",
+        mantis: "#70c171",
+        asparagus: "#6ea462",
+        amazon: "#346b50",
+        "coral-reef": "#c0c2a0",
+
+        // shadcn/ui CSS variables
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
