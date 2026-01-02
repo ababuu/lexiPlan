@@ -34,6 +34,7 @@ app.use((req, res, next) => {
   const csrfExemptPaths = [
     "/api/auth/register",
     "/api/auth/login",
+    "/api/auth/me",
     "/api/auth/logout",
   ];
 

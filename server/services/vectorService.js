@@ -3,7 +3,7 @@ import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
 import mongoose from "mongoose";
 
-export const processDocument = async (text, docId, orgId) => {
+export const processDocument = async (text, docId, orgId, projectId) => {
   // 1. SPLIT
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1000,
@@ -18,6 +18,7 @@ export const processDocument = async (text, docId, orgId) => {
     metadata: {
       orgId: orgId.toString(),
       docId: docId.toString(),
+      projectId: projectId.toString(),
     },
   }));
 
@@ -36,4 +37,58 @@ export const processDocument = async (text, docId, orgId) => {
       embeddingKey: "embedding",
     }
   );
+};
+
+// Delete vectors for a specific document
+export const deleteDocumentVectors = async (docId, orgId) => {
+  try {
+    const vectorCollection = mongoose.connection.db.collection("vectors");
+
+    const deleteResult = await vectorCollection.deleteMany({
+      docId: docId.toString(),
+      orgId: orgId.toString(),
+    });
+
+    console.log(
+      `🗑️ Deleted ${deleteResult.deletedCount} vector chunks for document ${docId}`
+    );
+    return deleteResult.deletedCount;
+  } catch (error) {
+    console.error("❌ Error deleting document vectors:", error);
+    throw error;
+  }
+};
+
+// Delete vectors for all documents in a project
+export const deleteProjectVectors = async (projectId, orgId) => {
+  try {
+    const vectorCollection = mongoose.connection.db.collection("vectors");
+
+    // Get all documents for this project first to get their docIds
+    const Document = mongoose.model("Document");
+    const projectDocuments = await Document.find({
+      projectId: projectId.toString(),
+      orgId: orgId.toString(),
+    }).select("_id");
+
+    if (projectDocuments.length === 0) {
+      console.log(`📝 No documents found for project ${projectId}`);
+      return 0;
+    }
+
+    const docIds = projectDocuments.map((doc) => doc._id.toString());
+
+    const deleteResult = await vectorCollection.deleteMany({
+      docId: { $in: docIds },
+      orgId: orgId.toString(),
+    });
+
+    console.log(
+      `🗑️ Deleted ${deleteResult.deletedCount} vector chunks for project ${projectId} (${docIds.length} documents)`
+    );
+    return deleteResult.deletedCount;
+  } catch (error) {
+    console.error("❌ Error deleting project vectors:", error);
+    throw error;
+  }
 };
