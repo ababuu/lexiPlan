@@ -2,10 +2,24 @@ import express from "express";
 import multer from "multer";
 import { PDFParse } from "pdf-parse"; // Correct named import for ESM v2
 import { processDocument } from "../services/vectorService.js";
+import {
+  getDocuments,
+  getDocumentById,
+  deleteDocument,
+} from "../controllers/documentController.js";
 import Document from "../models/Document.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+// GET /api/documents - Get documents with optional project filter
+router.get("/", getDocuments);
+
+// GET /api/documents/:id - Get specific document
+router.get("/:id", getDocumentById);
+
+// DELETE /api/documents/:id - Delete document
+router.delete("/:id", deleteDocument);
 
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
@@ -31,7 +45,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     });
 
     // 5. Background vectorization
-    processDocument(result.text, newDoc._id, req.orgId)
+    processDocument(result.text, newDoc._id, req.orgId, projectId)
       .then(async () => {
         newDoc.vectorized = true;
         await newDoc.save();

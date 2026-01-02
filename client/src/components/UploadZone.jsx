@@ -175,7 +175,7 @@ const UploadZone = () => {
       </div>
 
       {/* Project Selection */}
-      <Card>
+      <Card className="border border-[hsl(var(--box-border))] shadow-md rounded-[24px] dark:border-border/50 dark:shadow-none dark:rounded-lg">
         <CardHeader>
           <CardTitle className="text-lg">Select Project</CardTitle>
           <CardDescription>
@@ -212,7 +212,7 @@ const UploadZone = () => {
       </Card>
 
       {/* Upload Zone */}
-      <Card>
+      <Card className="border border-[hsl(var(--box-border))] shadow-md rounded-[24px] dark:border-border/50 dark:shadow-none dark:rounded-lg">
         <CardContent className="pt-6">
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
@@ -258,7 +258,7 @@ const UploadZone = () => {
 
       {/* File List */}
       {files.length > 0 && (
-        <Card>
+        <Card className="border border-[hsl(var(--box-border))] shadow-[rgba(0,30,43,0.4)_0px_8px_20px_-6px] rounded-[24px] dark:border-border/50 dark:shadow-none dark:rounded-lg">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-lg">Files to Upload</CardTitle>
