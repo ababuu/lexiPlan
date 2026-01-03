@@ -46,7 +46,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Welcome back</CardTitle>
         <CardDescription>Sign in to your account to continue</CardDescription>
@@ -89,14 +89,14 @@ const LoginForm = ({ onSwitchToRegister }) => {
             {isLoading ? "Signing in..." : "Sign in"}
           </Button>
 
-          <div className="text-center">
-            <button
-              type="button"
+          <div className="text-center text-sm mt-6">
+            Don't have an account?{" "}
+            <span
               onClick={onSwitchToRegister}
-              className="text-sm text-muted-foreground hover:text-primary"
+              className="text-primary hover:underline cursor-pointer"
             >
-              Don't have an account? Sign up
-            </button>
+              Sign up
+            </span>
           </div>
         </form>
       </CardContent>

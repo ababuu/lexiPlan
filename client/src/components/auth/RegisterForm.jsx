@@ -106,14 +106,14 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             {isLoading ? "Creating account..." : "Create account"}
           </Button>
 
-          <div className="text-center">
-            <button
-              type="button"
+          <div className="text-center text-sm mt-6">
+            Already have an account{" "}
+            <span
               onClick={onSwitchToLogin}
-              className="text-sm text-muted-foreground hover:text-primary"
+              className="text-primary hover:underline cursor-pointer"
             >
-              Already have an account? Sign in
-            </button>
+              Sign in
+            </span>
           </div>
         </form>
       </CardContent>
