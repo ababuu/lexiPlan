@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -6,161 +6,314 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/Card";
-import { BarChart3, FileText, MessageSquare, TrendingUp } from "lucide-react";
+import {
+  BarChart3,
+  FileText,
+  MessageSquare,
+  TrendingUp,
+  Activity,
+  Calendar,
+  Users,
+  CheckCircle,
+  Clock,
+  XCircle,
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "./ui/SimpleCharts";
+import { analyticsApi } from "../lib/api";
 
 const AnalyticsView = () => {
-  // Mock data for demonstration
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, []);
+
+  const loadAnalytics = async () => {
+    try {
+      setLoading(true);
+      const response = await analyticsApi.getAnalytics();
+      setAnalyticsData(response.data.data);
+    } catch (err) {
+      console.error("Failed to load analytics:", err);
+      setError("Failed to load analytics data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading analytics...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 space-y-6">
+        <Card>
+          <CardContent className="flex items-center justify-center h-32">
+            <div className="text-center">
+              <XCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
+              <p className="text-destructive">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const stats = [
     {
       title: "Total Documents",
-      value: "24",
+      value: analyticsData?.totalDocuments?.toString() || "0",
       change: "+12%",
       icon: FileText,
       trend: "up",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
     {
-      title: "AI Conversations",
-      value: "156",
+      title: "Messages Sent",
+      value: analyticsData?.totalMessages?.toString() || "0",
       change: "+23%",
       icon: MessageSquare,
       trend: "up",
+      color: "text-secondary",
+      bgColor: "bg-secondary/10",
     },
     {
-      title: "Projects",
-      value: "8",
-      change: "+2",
-      icon: BarChart3,
+      title: "Ready Documents",
+      value: analyticsData?.documentsByStatus?.ready?.toString() || "0",
+      change: "Ready",
+      icon: CheckCircle,
       trend: "up",
+      color: "text-green-600",
+      bgColor: "bg-green-100",
     },
     {
-      title: "Monthly Usage",
-      value: "2.3k",
-      change: "+18%",
-      icon: TrendingUp,
-      trend: "up",
+      title: "Processing",
+      value: analyticsData?.documentsByStatus?.processing?.toString() || "0",
+      change: "In Progress",
+      icon: Clock,
+      trend: "neutral",
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-100",
     },
   ];
 
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Analytics</h2>
+        <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Analytics Dashboard
+        </h2>
         <p className="text-muted-foreground">
-          Monitor your AI assistant usage and document insights
+          Monitor your LexiPlan AI assistant usage and document insights
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title}>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <div className="flex items-center text-sm">
-                      <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                      <span className="text-green-500">{stat.change}</span>
-                      <span className="text-muted-foreground ml-1">
-                        from last month
-                      </span>
-                    </div>
-                  </div>
-                  <Icon className="w-8 h-8 text-muted-foreground" />
+            <Card
+              key={stat.title}
+              className="hover:shadow-md transition-shadow duration-200"
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
+                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                  <Icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground">{stat.change}</p>
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Coming Soon */}
+      {/* Charts Row */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        {/* Documents per Project Chart */}
+        <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Document Insights</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Documents per Project
+            </CardTitle>
             <CardDescription>
-              Analyze document types, sizes, and processing times
+              Distribution of documents across projects
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-muted-foreground">Charts coming soon</p>
-              </div>
-            </div>
+            <ResponsiveContainer
+              width="100%"
+              height={250}
+              data={
+                analyticsData?.documentsByProject?.map((project) => ({
+                  name: project.projectName,
+                  documents: project.documentCount,
+                })) || []
+              }
+            >
+              <BarChart>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="documents" fill="hsl(var(--primary))" />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Weekly Activity Chart */}
+        <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Conversation Trends</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-secondary" />
+              Weekly Message Activity
+            </CardTitle>
             <CardDescription>
-              Track AI interactions and response quality over time
+              Messages sent over the last 7 days
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-muted-foreground">Analytics coming soon</p>
-              </div>
-            </div>
+            <ResponsiveContainer
+              width="100%"
+              height={250}
+              data={
+                analyticsData?.messagesByDay?.map((day) => ({
+                  date: new Date(day._id).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  }),
+                  messages: day.count,
+                })) || []
+              }
+            >
+              <BarChart>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="messages" fill="hsl(var(--secondary))" />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activity */}
+      {/* Document Status Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Document Processing Status
+          </CardTitle>
           <CardDescription>
-            Latest interactions and document uploads
+            Current status of all documents in your organization
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {[
-              {
-                action: "Document uploaded",
-                item: "Q4_Financial_Report.pdf",
-                time: "2 hours ago",
-              },
-              {
-                action: "AI conversation",
-                item: "Marketing strategy discussion",
-                time: "4 hours ago",
-              },
-              {
-                action: "Project created",
-                item: "Product Launch 2024",
-                time: "1 day ago",
-              },
-              {
-                action: "Document processed",
-                item: "User_Research_Data.pdf",
-                time: "2 days ago",
-              },
-            ].map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between py-2 border-b last:border-b-0"
-              >
-                <div>
-                  <p className="font-medium">{activity.action}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {activity.item}
-                  </p>
-                </div>
-                <p className="text-sm text-muted-foreground">{activity.time}</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 rounded-full bg-green-100">
+                <CheckCircle className="h-4 w-4 text-green-600" />
               </div>
-            ))}
+              <div>
+                <p className="text-sm font-medium">Ready</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {analyticsData?.documentsByStatus?.ready || 0}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="p-2 rounded-full bg-yellow-100">
+                <Clock className="h-4 w-4 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Processing</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {analyticsData?.documentsByStatus?.processing || 0}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="p-2 rounded-full bg-red-100">
+                <XCircle className="h-4 w-4 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Error</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {analyticsData?.documentsByStatus?.error || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Additional Insights */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            Recent Activity Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p>
+              • Total documents processed: {analyticsData?.totalDocuments || 0}
+            </p>
+            <p>
+              • AI conversations conducted: {analyticsData?.totalMessages || 0}
+            </p>
+            <p>
+              • Projects with documents:{" "}
+              {analyticsData?.documentsByProject?.length || 0}
+            </p>
+            {analyticsData?.messagesByDay?.length > 0 && (
+              <p>
+                • Most active day:{" "}
+                {
+                  analyticsData.messagesByDay.reduce((max, day) =>
+                    day.count > max.count ? day : max
+                  )._id
+                }{" "}
+                (
+                {
+                  analyticsData.messagesByDay.reduce((max, day) =>
+                    day.count > max.count ? day : max
+                  ).count
+                }{" "}
+                messages)
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
