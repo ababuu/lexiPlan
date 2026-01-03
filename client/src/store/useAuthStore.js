@@ -5,7 +5,6 @@ import useChatStore from "./useChatStore";
 const useAuthStore = create((set, get) => ({
   // State
   user: null,
-  orgName: null,
   isAuthenticated: false,
   isInitializing: true,
   error: null,
@@ -20,7 +19,6 @@ const useAuthStore = create((set, get) => ({
 
       set({
         user: userData,
-        orgName: userData.orgName,
         isAuthenticated: true,
         isInitializing: false,
         error: null,
@@ -31,10 +29,9 @@ const useAuthStore = create((set, get) => ({
       console.log("Auth check failed:", error.response?.status);
       set({
         user: null,
-        orgName: null,
         isAuthenticated: false,
         isInitializing: false,
-        error: error.response?.status === 401 ? null : error.message,
+        error: null,
       });
       return null;
     }
@@ -48,25 +45,25 @@ const useAuthStore = create((set, get) => ({
       const userData = response.data.user;
 
       // Check if this is a different organization from previous session
-      const currentOrgName = get().orgName;
-      const newOrgName = userData.orgName;
+      // const currentOrgId = get().orgId;
+      // const newOrgId = userData.orgId;
 
       set({
         user: userData,
-        orgName: userData.orgName,
         isAuthenticated: true,
         error: null,
       });
 
-      // Clear chat data if switching to different org
-      if (currentOrgName && currentOrgName !== newOrgName) {
-        const { clearChat, setConversations } = useChatStore.getState();
-        clearChat();
-        setConversations([]);
-      }
+      // // Clear chat data if switching to different org
+      // if (currentOrgId && currentOrgId !== newOrgId) {
+      //   const { clearChat, setConversations } = useChatStore.getState();
+      //   clearChat();
+      //   setConversations([]);
+      // }
 
       return userData;
     } catch (error) {
+      console.log(error);
       const errorMessage = error.response?.data?.message || "Login failed";
       set({ error: errorMessage });
       throw new Error(errorMessage);
@@ -82,7 +79,6 @@ const useAuthStore = create((set, get) => ({
 
       set({
         user,
-        orgName: user.orgName,
         isAuthenticated: true,
         error: null,
       });
@@ -105,7 +101,6 @@ const useAuthStore = create((set, get) => ({
       // Always clear local state
       set({
         user: null,
-        orgName: null,
         isAuthenticated: false,
         error: null,
       });
@@ -121,7 +116,6 @@ const useAuthStore = create((set, get) => ({
 
   // Computed getters
   getUser: () => get().user,
-  getOrgName: () => get().orgName,
   isLoggedIn: () => get().isAuthenticated,
 }));
 
