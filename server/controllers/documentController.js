@@ -3,7 +3,7 @@ import { deleteDocumentVectors } from "../services/vectorService.js";
 // GET /api/documents - Get documents for organization with optional project filter
 export const getDocuments = async (req, res) => {
   try {
-    const { orgId } = req.user; // Required from authenticated user
+    const orgId = req.orgId; // From auth middleware
     const { projectId } = req.query; // Optional filter parameter
 
     if (!orgId) {
@@ -47,7 +47,7 @@ export const getDocuments = async (req, res) => {
 // GET /api/documents/:id - Get specific document
 export const getDocumentById = async (req, res) => {
   try {
-    const { orgId } = req.user;
+    const orgId = req.orgId;
     const { id } = req.params;
 
     const document = await Document.findOne({
@@ -79,7 +79,7 @@ export const getDocumentById = async (req, res) => {
 // DELETE /api/documents/:id - Delete document with vectors
 export const deleteDocument = async (req, res) => {
   try {
-    const { orgId } = req.user;
+    const orgId = req.orgId;
     const { id } = req.params;
 
     // First, find the document to ensure it exists and belongs to the org
@@ -121,6 +121,59 @@ export const deleteDocument = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete document",
+      error: error.message,
+    });
+  }
+};
+
+// PUT /api/documents/:id - Update document
+export const updateDocument = async (req, res) => {
+  try {
+    const orgId = req.orgId;
+    const { id } = req.params;
+    const { filename } = req.body;
+
+    if (!filename) {
+      return res.status(400).json({
+        success: false,
+        message: "Filename is required",
+      });
+    }
+
+    // Find and update the document
+    const document = await Document.findOneAndUpdate(
+      { _id: id, orgId },
+      {
+        filename: filename.trim(),
+        updatedAt: new Date(),
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!document) {
+      return res.status(404).json({
+        success: false,
+        message: "Document not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Document updated successfully",
+      document: {
+        id: document._id,
+        filename: document.filename,
+        updatedAt: document.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating document:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update document",
       error: error.message,
     });
   }

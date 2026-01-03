@@ -6,6 +6,7 @@ import {
   getDocuments,
   getDocumentById,
   deleteDocument,
+  updateDocument,
 } from "../controllers/documentController.js";
 import Document from "../models/Document.js";
 
@@ -17,6 +18,9 @@ router.get("/", getDocuments);
 
 // GET /api/documents/:id - Get specific document
 router.get("/:id", getDocumentById);
+
+// PUT /api/documents/:id - Update document
+router.put("/:id", updateDocument);
 
 // DELETE /api/documents/:id - Delete document
 router.delete("/:id", deleteDocument);
