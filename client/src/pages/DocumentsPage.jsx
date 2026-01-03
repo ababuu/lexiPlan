@@ -7,6 +7,9 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  MoreVertical,
+  Trash2,
+  Edit,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import {
@@ -32,6 +35,22 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/Table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../components/ui/DropdownMenu";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "../components/ui/AlertDialog";
 import UploadModal from "../components/UploadModal";
 import { documentsApi, projectsApi } from "../lib/api";
 
@@ -44,6 +63,14 @@ const DocumentsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProject, setSelectedProject] = useState("");
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+
+  // Document action states
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState(null);
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [documentToRename, setDocumentToRename] = useState(null);
+  const [newFileName, setNewFileName] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     loadDocuments();
@@ -131,6 +158,55 @@ const DocumentsPage = () => {
   const handleUploadComplete = () => {
     loadDocuments(); // Refresh document list
     setUploadModalOpen(false);
+  };
+
+  // Document action handlers
+  const handleDeleteClick = (document) => {
+    setDocumentToDelete(document);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!documentToDelete) return;
+
+    try {
+      setActionLoading(true);
+      await documentsApi.deleteDocument(documentToDelete._id);
+      await loadDocuments(); // Refresh the list
+      setDeleteDialogOpen(false);
+      setDocumentToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete document:", error);
+      alert("Failed to delete document");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRenameClick = (document) => {
+    setDocumentToRename(document);
+    setNewFileName(document.filename);
+    setRenameDialogOpen(true);
+  };
+
+  const handleRenameConfirm = async () => {
+    if (!documentToRename || !newFileName.trim()) return;
+
+    try {
+      setActionLoading(true);
+      await documentsApi.updateDocument(documentToRename._id, {
+        filename: newFileName.trim(),
+      });
+      await loadDocuments(); // Refresh the list
+      setRenameDialogOpen(false);
+      setDocumentToRename(null);
+      setNewFileName("");
+    } catch (error) {
+      console.error("Failed to rename document:", error);
+      alert("Failed to rename document");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -277,6 +353,7 @@ const DocumentsPage = () => {
                   <TableHead>Status</TableHead>
                   <TableHead>Size</TableHead>
                   <TableHead>Uploaded</TableHead>
+                  <TableHead className="w-[50px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -305,6 +382,35 @@ const DocumentsPage = () => {
                     <TableCell className="text-sm text-muted-foreground">
                       {new Date(document.createdAt).toLocaleDateString()}
                     </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleRenameClick(document)}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteClick(document)}
+                            className="cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -319,6 +425,79 @@ const DocumentsPage = () => {
         onClose={() => setUploadModalOpen(false)}
         onUploadComplete={handleUploadComplete}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{documentToDelete?.filename}"?
+              This action cannot be undone and will remove all associated vector
+              data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={actionLoading}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={actionLoading}
+            >
+              {actionLoading ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Rename Dialog */}
+      <AlertDialog
+        isOpen={renameDialogOpen}
+        onClose={() => setRenameDialogOpen(false)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rename Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter a new name for "{documentToRename?.filename}":
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="px-6 py-4">
+            <Input
+              value={newFileName}
+              onChange={(e) => setNewFileName(e.target.value)}
+              placeholder="Enter new filename..."
+              className="w-full"
+              disabled={actionLoading}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setRenameDialogOpen(false);
+                setNewFileName("");
+              }}
+              disabled={actionLoading}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRenameConfirm}
+              disabled={actionLoading || !newFileName.trim()}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {actionLoading ? "Renaming..." : "Rename"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
