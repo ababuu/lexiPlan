@@ -79,6 +79,7 @@ export const documentsApi = {
   },
   getDocumentById: (id) => api.get(`/documents/${id}`),
   deleteDocument: (id) => api.delete(`/documents/${id}`),
+  updateDocument: (id, data) => api.put(`/documents/${id}`, data),
 };
 
 // Chat API method using native fetch for SSE streaming
@@ -159,6 +160,11 @@ export const chatApi = {
     api.get(`/chat/history/project/${projectId}`),
   getConversation: (id) => api.get(`/chat/${id}`),
   deleteConversation: (id) => api.delete(`/chat/${id}`),
+};
+
+// Analytics API
+export const analyticsApi = {
+  getAnalytics: () => api.get("/analytics"),
 };
 
 export default api;
