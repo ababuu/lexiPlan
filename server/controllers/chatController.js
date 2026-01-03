@@ -1,6 +1,8 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { getContextualAnswer } from "../services/aiService.js";
 import Conversation from "../models/Conversation.js";
+import mongoose from "mongoose";
+import { HumanMessage, AIMessage, SystemMessage } from "langchain";
 
 export const chatWithDocuments = async (req, res) => {
   const { message, conversationId, projectId } = req.body;
@@ -11,19 +13,44 @@ export const chatWithDocuments = async (req, res) => {
     // 1. Get relevant context from documents (with optional project filter)
     const context = await getContextualAnswer(message, orgId, projectId);
 
-    // 2. Initialize Gemini LLM (streaming)
+    // 2. Fetch conversation history for context (if existing conversation)
+    let conversationHistory = [];
+    if (conversationId) {
+      try {
+        const existingConversation = await Conversation.findOne({
+          _id: conversationId,
+          orgId: orgId,
+        }).select("messages");
+
+        if (existingConversation && existingConversation.messages.length > 0) {
+          // Get last 5 messages for context
+          const recentMessages = existingConversation.messages.slice(-5);
+          // Map stored roles to LangChain message class instances
+          conversationHistory = recentMessages.map((msg) =>
+            msg.role === "user"
+              ? new HumanMessage(msg.content)
+              : new AIMessage(msg.content)
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching conversation history:", error);
+        // Continue without history if fetch fails
+      }
+    }
+
+    // 3. Initialize Gemini LLM (streaming)
     const model = new ChatGoogleGenerativeAI({
       model: "gemini-2.5-flash",
       temperature: 0,
       streaming: true,
     });
 
-    // 3. Set headers for Server-Sent Events (SSE)
+    // 4. Set headers for Server-Sent Events (SSE)
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    // 4. If new conversation, send conversation ID as first chunk
+    // 5. If new conversation, send conversation ID as first chunk
     let newConversationId = null;
     if (!conversationId) {
       // Pre-create conversation to get ID
@@ -48,7 +75,7 @@ export const chatWithDocuments = async (req, res) => {
       );
     }
 
-    // 5. System prompt with retrieved context
+    // 6. System prompt with retrieved context
     const systemPrompt = projectId
       ? `
         You are a helpful assistant for a specific project within an organization.
@@ -68,11 +95,15 @@ export const chatWithDocuments = async (req, res) => {
         ${context}
         `;
 
-    // 6. Stream response and collect full response
-    const stream = await model.stream([
-      { role: "system", content: systemPrompt },
-      { role: "user", content: message },
-    ]);
+    // 6. Build message history for Gemini using LangChain message classes
+    const messages = [
+      new SystemMessage(systemPrompt),
+      ...conversationHistory, // Array of HumanMessage/AIMessage instances
+      new HumanMessage(message),
+    ];
+
+    // 7. Stream response and collect full response
+    const stream = await model.stream(messages);
 
     let fullResponse = "";
 
@@ -92,7 +123,7 @@ export const chatWithDocuments = async (req, res) => {
     res.write("data: [DONE]\n\n");
     res.end();
 
-    // 7. Save conversation after streaming completes
+    // 8. Save conversation after streaming completes
     const finalConversationId = conversationId || newConversationId;
     await saveConversation(
       userId,
@@ -173,7 +204,10 @@ export const getChatHistory = async (req, res) => {
   try {
     const conversations = await Conversation.find({
       orgId: req.orgId,
-      projectId: { $exists: false }, // Only get general conversations
+      $or: [
+        { projectId: { $exists: false } }, // Legacy conversations without projectId field
+        { projectId: null }, // New conversations with explicit null projectId
+      ],
     })
       .sort({ updatedAt: -1 })
       .select("_id title updatedAt messages")
@@ -199,7 +233,7 @@ export const getChatHistory = async (req, res) => {
 export const getProjectChatHistory = async (req, res) => {
   try {
     const { projectId } = req.params;
-    
+
     const conversations = await Conversation.find({
       orgId: req.orgId,
       projectId: projectId, // Only get project-specific conversations
