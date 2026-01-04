@@ -6,6 +6,7 @@ import {
   BarChart3,
   FileText,
   Building,
+  Home,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import useAuthStore from "../../store/useAuthStore";
@@ -16,6 +17,7 @@ const Sidebar = () => {
   const { user } = useAuthStore();
 
   const navigation = [
+    { id: "home", name: "Home", icon: Home, path: "/" },
     { id: "projects", name: "Projects", icon: FolderOpen, path: "/projects" },
     { id: "chat", name: "AI Chat", icon: MessageSquare, path: "/chat" },
     { id: "documents", name: "Documents", icon: FileText, path: "/documents" },
@@ -23,10 +25,7 @@ const Sidebar = () => {
   ];
 
   const isActive = (path) => {
-    return (
-      location.pathname === path ||
-      (path === "/projects" && location.pathname.startsWith("/projects"))
-    );
+    return location.pathname === path;
   };
 
   return (
