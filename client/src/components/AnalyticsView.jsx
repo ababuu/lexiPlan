@@ -17,7 +17,10 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
+import { Button } from "./ui/Button";
 import {
   ResponsiveContainer,
   BarChart,
@@ -32,23 +35,46 @@ import { analyticsApi } from "../lib/api";
 const AnalyticsView = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     loadAnalytics();
   }, []);
 
-  const loadAnalytics = async () => {
+  const loadAnalytics = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
       const response = await analyticsApi.getAnalytics();
-      setAnalyticsData(response.data.data);
+      const data = response.data.data;
+      console.log("Analytics API Response:", data);
+      console.log("Documents by Project (raw):", data.documentsByProject);
+      console.log("Messages by Day (raw):", data.messagesByDay);
+      console.log(
+        "Documents by Project type:",
+        Array.isArray(data.documentsByProject)
+      );
+      console.log("Messages by Day type:", Array.isArray(data.messagesByDay));
+      setAnalyticsData(data);
+      setLastUpdated(new Date());
     } catch (err) {
       console.error("Failed to load analytics:", err);
-      setError("Failed to load analytics data");
+      setError("Failed to load analytics data. Please try again.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = () => {
+    loadAnalytics(true);
   };
 
   if (loading) {
@@ -68,65 +94,111 @@ const AnalyticsView = () => {
     return (
       <div className="p-6 space-y-6">
         <Card>
-          <CardContent className="flex items-center justify-center h-32">
-            <div className="text-center">
-              <XCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
-              <p className="text-destructive">{error}</p>
-            </div>
+          <CardContent className="flex flex-col items-center justify-center h-64 text-center">
+            <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">
+              Unable to Load Analytics
+            </h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => loadAnalytics()} disabled={loading}>
+              {loading ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Try Again
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
+  // Calculate insights and trends from real data
+  const totalDocs = analyticsData?.totalDocuments || 0;
+  const totalMsgs = analyticsData?.totalMessages || 0;
+  const totalConversations = analyticsData?.totalConversations || 0;
+  const totalProjects = analyticsData?.totalProjects || 0;
+  const readyDocs = analyticsData?.documentsByStatus?.ready || 0;
+  const processingDocs = analyticsData?.documentsByStatus?.processing || 0;
+  const errorDocs = analyticsData?.documentsByStatus?.error || 0;
+
+  const processingPercentage = analyticsData?.processingRate || 0;
+  const avgMessagesPerConv = analyticsData?.avgMessagesPerConversation || 0;
+  const avgDocsPerProject = analyticsData?.avgDocumentsPerProject || 0;
+
   const stats = [
     {
       title: "Total Documents",
-      value: analyticsData?.totalDocuments?.toString() || "0",
-      change: "+12%",
+      value: totalDocs.toString(),
+      change:
+        totalProjects > 0 ? `${totalProjects} projects` : "No projects yet",
       icon: FileText,
       trend: "up",
-      color: "text-primary",
-      bgColor: "bg-primary/10",
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
     },
     {
-      title: "Messages Sent",
-      value: analyticsData?.totalMessages?.toString() || "0",
-      change: "+23%",
+      title: "AI Conversations",
+      value: totalConversations.toString(),
+      change:
+        totalMsgs > 0
+          ? `${totalMsgs} total messages`
+          : "Start chatting with AI",
       icon: MessageSquare,
       trend: "up",
-      color: "text-secondary",
-      bgColor: "bg-secondary/10",
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
     },
     {
       title: "Ready Documents",
-      value: analyticsData?.documentsByStatus?.ready?.toString() || "0",
-      change: "Ready",
+      value: readyDocs.toString(),
+      change: `${processingPercentage}% processed`,
       icon: CheckCircle,
       trend: "up",
       color: "text-green-600",
       bgColor: "bg-green-100",
     },
     {
-      title: "Processing",
-      value: analyticsData?.documentsByStatus?.processing?.toString() || "0",
-      change: "In Progress",
-      icon: Clock,
-      trend: "neutral",
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-100",
+      title: "Active Projects",
+      value: totalProjects.toString(),
+      change:
+        processingDocs > 0 ? `${processingDocs} processing` : "All up to date",
+      icon: BarChart3,
+      trend: processingDocs > 0 ? "neutral" : "up",
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
     },
   ];
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Analytics Dashboard
-        </h2>
-        <p className="text-muted-foreground">
-          Monitor your LexiPlan AI assistant usage and document insights
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Analytics Dashboard
+          </h2>
+          <p className="text-muted-foreground">
+            Monitor your LexiPlan AI assistant usage and document insights
+          </p>
+          {lastUpdated && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw
+            className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+          />
+          {refreshing ? "Refreshing..." : "Refresh"}
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -172,19 +244,19 @@ const AnalyticsView = () => {
             <ResponsiveContainer
               width="100%"
               height={250}
-              data={
-                analyticsData?.documentsByProject?.map((project) => ({
-                  name: project.projectName,
-                  documents: project.documentCount,
-                })) || []
-              }
+              data={analyticsData?.documentsByProject}
             >
               <BarChart>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis
+                  dataKey="projectName"
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="documents" fill="hsl(var(--primary))" />
+                <Bar dataKey="documentCount" fill="hsl(var(--primary))" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -205,22 +277,14 @@ const AnalyticsView = () => {
             <ResponsiveContainer
               width="100%"
               height={250}
-              data={
-                analyticsData?.messagesByDay?.map((day) => ({
-                  date: new Date(day._id).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  }),
-                  messages: day.count,
-                })) || []
-              }
+              data={analyticsData?.messagesByDay}
             >
               <BarChart>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
+                <XAxis dataKey="_id" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="messages" fill="hsl(var(--secondary))" />
+                <Bar dataKey="count" fill="hsl(var(--secondary))" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -278,45 +342,114 @@ const AnalyticsView = () => {
       </Card>
 
       {/* Additional Insights */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            Recent Activity Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground space-y-1">
-            <p>
-              • Total documents processed: {analyticsData?.totalDocuments || 0}
-            </p>
-            <p>
-              • AI conversations conducted: {analyticsData?.totalMessages || 0}
-            </p>
-            <p>
-              • Projects with documents:{" "}
-              {analyticsData?.documentsByProject?.length || 0}
-            </p>
-            {analyticsData?.messagesByDay?.length > 0 && (
-              <p>
-                • Most active day:{" "}
-                {
-                  analyticsData.messagesByDay.reduce((max, day) =>
-                    day.count > max.count ? day : max
-                  )._id
-                }{" "}
-                (
-                {
-                  analyticsData.messagesByDay.reduce((max, day) =>
-                    day.count > max.count ? day : max
-                  ).count
-                }{" "}
-                messages)
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Key Metrics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Document Processing Rate
+                </span>
+                <span className="text-sm font-medium">
+                  {processingPercentage}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Avg Messages per Conversation
+                </span>
+                <span className="text-sm font-medium">
+                  {avgMessagesPerConv}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Avg Documents per Project
+                </span>
+                <span className="text-sm font-medium">{avgDocsPerProject}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Total Users
+                </span>
+                <span className="text-sm font-medium">
+                  {analyticsData?.totalUsers || 0}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-primary" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {analyticsData?.recentDocuments?.slice(0, 3).map((doc, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between py-1"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <span
+                      className="text-sm truncate max-w-[200px]"
+                      title={doc.filename}
+                    >
+                      {doc.filename}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      doc.vectorized
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {doc.vectorized ? "Ready" : "Processing"}
+                  </span>
+                </div>
+              )) || (
+                <p className="text-sm text-muted-foreground">
+                  No recent documents
+                </p>
+              )}
+
+              {analyticsData?.recentConversations
+                ?.slice(0, 2)
+                .map((conv, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between py-1"
+                  >
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      <span
+                        className="text-sm truncate max-w-[200px]"
+                        title={conv.title}
+                      >
+                        {conv.title}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {conv.messages?.length || 0} msgs
+                    </span>
+                  </div>
+                )) || null}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
