@@ -123,7 +123,7 @@ const ProjectChatWidget = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsOpen(false)}
-                    className="w-8 h-8 p-0 hover:bg-gray-100"
+                    className="w-8 h-8 p-0 hover:bg-primary"
                   >
                     <X className="w-4 h-4" />
                   </Button>
