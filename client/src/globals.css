@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Light Theme - Deep Forest Tech */
+    /* Light Theme - LexiPlan Tech */
     --background: 0 0% 100%; /* White */
     --foreground: 192 55% 20%; /* Elephant */
 
@@ -43,7 +43,7 @@
     --radius: 0.75rem;
   }
 
-  /* Dark Theme - Deep Forest Tech */
+  /* Dark Theme - LexiPlan Tech */
   .dark {
     --background: 194 100% 8%; /* #001E2B - New Dark Blue Background */
     --foreground: 0 0% 98%; /* Much Whiter Text */

@@ -18,7 +18,7 @@ export default {
     },
     extend: {
       colors: {
-        // Deep Forest Tech Palette
+        // LexiPlan Tech Palette
         elephant: "#143d4b",
         calypso: "#256d7a",
         mantis: "#70c171",

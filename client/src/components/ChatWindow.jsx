@@ -24,7 +24,6 @@ const ChatWindow = () => {
   } = useChatStore();
 
   const [input, setInput] = useState("");
-  const [showHistory, setShowHistory] = useState(true);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -101,8 +100,8 @@ const ChatWindow = () => {
       {/* Main Content Area - Fixed Height */}
       <div className="flex-1 flex min-h-0">
         {/* Chat History Sidebar - Fixed */}
-        <div className="w-64 bg-background border-r border-border flex flex-col flex-shrink-0">
-          <div className="p-3 border-b border-border flex-shrink-0">
+        <div className="w-64 bg-background border-r border-primary/20 flex flex-col flex-shrink-0">
+          <div className="p-3 border-b border-primary/20 flex-shrink-0">
             <Button
               onClick={handleNewChat}
               className="w-full bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 hover:text-primary font-medium flex items-center justify-center gap-2 transition-all duration-200 text-sm py-2"
@@ -207,7 +206,7 @@ const ChatWindow = () => {
                       <Bot className="w-8 h-8 text-primary" />
                     </div>
                     <h3 className="text-xl font-semibold text-foreground mb-2">
-                      Welcome to Deep Forest AI
+                      Welcome to LexiPlan AI
                     </h3>
                     <p className="text-muted-foreground">
                       I can help you analyze documents, answer questions, and
@@ -323,7 +322,7 @@ const ChatWindow = () => {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Message Deep Forest AI..."
+                  placeholder="Message LexiPlan AI..."
                   disabled={isLoading}
                   className="w-full pr-12 py-3 rounded-xl border-primary/20 bg-background/90 focus:border-primary focus:ring-primary/20 placeholder:text-muted-foreground shadow-sm"
                 />
@@ -341,7 +340,7 @@ const ChatWindow = () => {
                 </Button>
               </form>
               <p className="text-xs text-muted-foreground mt-2 text-center">
-                Deep Forest AI can make mistakes. Consider checking important
+                LexiPlan AI can make mistakes. Consider checking important
                 information.
               </p>
             </div>
