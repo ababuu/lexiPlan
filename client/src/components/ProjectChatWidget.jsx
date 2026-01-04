@@ -7,6 +7,7 @@ import { Input } from "./ui/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
 import { ScrollArea } from "./ui/ScrollArea";
 import useProjectChatStore from "../store/useProjectChatStore";
+import ReactMarkdown from "react-markdown";
 
 const ProjectChatWidget = () => {
   const { projectId } = useParams();
@@ -173,9 +174,9 @@ const ProjectChatWidget = () => {
                                   : "bg-gray-100 text-gray-900"
                               }`}
                             >
-                              <p className="text-sm whitespace-pre-wrap">
-                                {message.content}
-                              </p>
+                              <div className="prose prose-sm max-w-none">
+                                <ReactMarkdown>{message.content}</ReactMarkdown>
+                              </div>
                               <p
                                 className={`text-xs mt-1 ${
                                   message.role === "user"
