@@ -36,12 +36,11 @@ export const getAnalytics = async (req, res) => {
     }, {});
 
     // Documents per project with actual project names
-    console.log("Fetching documents for orgId:", orgId);
+
     const allDocuments = await Document.find({ orgId }).populate(
       "projectId",
       "title"
     );
-    console.log("Found documents:", allDocuments.length);
 
     const documentsByProject = allDocuments.reduce((acc, doc) => {
       const projectName = doc.projectId?.title || "Unnamed Project";
@@ -59,8 +58,6 @@ export const getAnalytics = async (req, res) => {
       return acc;
     }, []);
 
-    console.log("Documents by project result:", documentsByProject);
-
     // 3. Conversation Analytics
     const conversations = await Conversation.find({ orgId }).select(
       "title messages createdAt projectId updatedAt"
@@ -72,13 +69,6 @@ export const getAnalytics = async (req, res) => {
       (total, conv) => total + conv.messages.length,
       0
     );
-
-    // Messages by day using actual message timestamps from the last week
-    console.log("Fetching conversations for orgId:", orgId);
-    const allConversations = await Conversation.find({ orgId }).select(
-      "messages createdAt"
-    );
-    console.log("Found conversations:", allConversations.length);
 
     const messagesByDayObj = {};
 
@@ -95,8 +85,6 @@ export const getAnalytics = async (req, res) => {
     const messagesByDay = Object.entries(messagesByDayObj)
       .map(([date, count]) => ({ _id: date, count }))
       .sort((a, b) => a._id.localeCompare(b._id));
-
-    console.log("Messages by day result:", messagesByDay);
 
     // Conversations by project
     const conversationsByProject = await Conversation.aggregate([
@@ -160,13 +148,6 @@ export const getAnalytics = async (req, res) => {
       totalProjects > 0 ? Math.round(totalDocuments / totalProjects) : 0;
     const processingRate =
       totalDocuments > 0 ? Math.round((readyDocs / totalDocuments) * 100) : 0;
-
-    // Debug logging
-    console.log("Analytics Data Debug:");
-    console.log("- documentsByProject:", documentsByProject);
-    console.log("- messagesByDay:", messagesByDay);
-    console.log("- totalDocuments:", totalDocuments);
-    console.log("- totalConversations:", totalConversations);
 
     res.json({
       success: true,

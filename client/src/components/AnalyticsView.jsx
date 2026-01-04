@@ -54,14 +54,6 @@ const AnalyticsView = () => {
 
       const response = await analyticsApi.getAnalytics();
       const data = response.data.data;
-      console.log("Analytics API Response:", data);
-      console.log("Documents by Project (raw):", data.documentsByProject);
-      console.log("Messages by Day (raw):", data.messagesByDay);
-      console.log(
-        "Documents by Project type:",
-        Array.isArray(data.documentsByProject)
-      );
-      console.log("Messages by Day type:", Array.isArray(data.messagesByDay));
       setAnalyticsData(data);
       setLastUpdated(new Date());
     } catch (err) {
