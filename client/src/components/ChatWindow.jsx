@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
+import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
 import { Button } from "./ui/Button";
 import { ScrollArea } from "./ui/ScrollArea";
+import ChatSkeleton from "./ui/ChatSkeleton";
 import { Send, Bot, User, Plus, Trash2, MessageSquare } from "lucide-react";
 import useChatStore from "../store/useChatStore";
 
@@ -119,10 +120,21 @@ const ChatWindow = () => {
 
           <ScrollArea className="flex-1 px-2 pb-3">
             {isLoadingHistory ? (
-              <div className="flex items-center justify-center py-6">
-                <div className="text-muted-foreground text-xs animate-pulse">
-                  Loading...
-                </div>
+              <div className="space-y-2">
+                {Array.from({ length: 3 }, (_, i) => (
+                  <div
+                    key={i}
+                    className="p-2 rounded-md bg-muted/30 animate-pulse"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-muted-foreground/20 rounded-full" />
+                      <div className="flex-1">
+                        <div className="h-3 w-24 bg-muted-foreground/20 rounded mb-1" />
+                        <div className="h-2 w-16 bg-muted-foreground/20 rounded" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : conversations.length === 0 ? (
               <div className="text-center py-4">
@@ -200,7 +212,9 @@ const ChatWindow = () => {
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
               <div className="max-w-3xl mx-auto px-4 py-6 pb-24">
-                {messages.length === 0 ? (
+                {isLoadingHistory && messages.length === 0 ? (
+                  <ChatSkeleton messageCount={4} />
+                ) : messages.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
                       <Bot className="w-8 h-8 text-primary" />

@@ -8,6 +8,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import {
@@ -24,44 +26,57 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/Table";
+import TableSkeleton from "../components/ui/TableSkeleton";
+import { Skeleton } from "../components/ui/Skeleton";
 import { documentsApi, projectsApi } from "../lib/api";
 import UploadModal from "../components/UploadModal";
 import ProjectChatWidget from "../components/ProjectChatWidget";
+import useDocumentStore from "../store/useDocumentStore";
+import { useToast, showToast } from "../hooks/useToast";
 
 const ProjectDetailPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Project state
   const [project, setProject] = useState(null);
-  const [documents, setDocuments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [documentsLoading, setDocumentsLoading] = useState(true);
+  const [projectLoading, setProjectLoading] = useState(true);
+
+  // Document store for this specific project
+  const {
+    documents,
+    loading: documentsLoading,
+    error: documentsError,
+    currentPage,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+    loadDocuments,
+    nextPage,
+    previousPage,
+    deleteDocument: storeDeleteDocument,
+  } = useDocumentStore();
+
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   useEffect(() => {
     loadProjectData();
-    loadDocuments();
+    // Load documents for this specific project
+    loadDocuments({ projectId, page: 1 });
   }, [projectId]);
 
   const loadProjectData = async () => {
     try {
+      setProjectLoading(true);
       const response = await projectsApi.getProject(projectId);
       setProject(response.data);
     } catch (error) {
       console.error("Failed to load project:", error);
+      showToast.error("Error", "Failed to load project details");
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadDocuments = async () => {
-    try {
-      setDocumentsLoading(true);
-      const response = await documentsApi.getDocuments(projectId);
-      setDocuments(response.data.documents || []);
-    } catch (error) {
-      console.error("Failed to load documents:", error);
-    } finally {
-      setDocumentsLoading(false);
+      setProjectLoading(false);
     }
   };
 
@@ -87,18 +102,39 @@ const ProjectDetailPage = () => {
     return "Error";
   };
 
-  const handleUploadComplete = () => {
-    loadDocuments();
+  const handleUploadComplete = async () => {
+    // Refresh documents for this project
+    await loadDocuments({ projectId });
     setIsUploadModalOpen(false);
+    showToast.success("Success", "Document uploaded successfully");
   };
 
-  if (loading) {
+  // Show loading state for project details
+  if (projectLoading) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading project...</p>
+      <div className="space-y-6 p-6">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <TableSkeleton
+              rows={5}
+              columns={4}
+              headerTitles={["Document", "Status", "Size", "Date"]}
+            />
           </div>
         </div>
       </div>
@@ -147,13 +183,12 @@ const ProjectDetailPage = () => {
         </CardHeader>
         <CardContent>
           {documentsLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
-                <p className="text-sm text-muted-foreground">
-                  Loading documents...
-                </p>
-              </div>
+            <div className="p-4">
+              <TableSkeleton
+                rows={5}
+                columns={4}
+                headerTitles={["File Name", "Status", "Size", "Uploaded"]}
+              />
             </div>
           ) : documents.length === 0 ? (
             <div className="text-center py-8">
@@ -168,40 +203,74 @@ const ProjectDetailPage = () => {
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>File Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Uploaded</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {documents.map((document) => (
-                  <TableRow key={document._id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        {document.filename}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(document.vectorized)}
-                        <span className="text-sm">
-                          {getStatusText(document.vectorized)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatFileSize(document.size)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(document.createdAt).toLocaleDateString()}
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>File Name</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Uploaded</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {documents.map((document) => (
+                    <TableRow key={document._id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          {document.filename}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(document.vectorized)}
+                          <span className="text-sm">
+                            {getStatusText(document.vectorized)}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatFileSize(document.size)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(document.createdAt).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Pagination for project documents */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6">
+                  <div className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages} ({totalCount} documents)
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={previousPage}
+                      disabled={!hasPreviousPage}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <span className="text-sm text-muted-foreground px-2">
+                      {currentPage} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={nextPage}
+                      disabled={!hasNextPage}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
