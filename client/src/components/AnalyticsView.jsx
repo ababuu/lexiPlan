@@ -21,6 +21,9 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Button } from "./ui/Button";
+import StatCardSkeleton from "./ui/StatCardSkeleton";
+import ChartSkeleton from "./ui/ChartSkeleton";
+import TableSkeleton from "./ui/TableSkeleton";
 import {
   ResponsiveContainer,
   BarChart,
@@ -72,11 +75,40 @@ const AnalyticsView = () => {
   if (loading) {
     return (
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading analytics...</p>
-          </div>
+        {/* Header */}
+        <div className="space-y-2">
+          <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-96 bg-muted animate-pulse rounded" />
+        </div>
+
+        {/* Stat Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartSkeleton title={true} height="h-64" />
+          <ChartSkeleton title={true} height="h-64" />
+          <ChartSkeleton title={true} height="h-80" />
+          <ChartSkeleton title={true} height="h-80" />
+        </div>
+
+        {/* Bottom Tables */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TableSkeleton
+            rows={5}
+            columns={3}
+            headerTitles={["Project", "Documents", "Status"]}
+          />
+          <TableSkeleton
+            rows={5}
+            columns={3}
+            headerTitles={["Recent", "Type", "Date"]}
+          />
         </div>
       </div>
     );
