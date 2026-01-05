@@ -10,6 +10,8 @@ import {
   MoreVertical,
   Trash2,
   Edit,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import {
@@ -51,17 +53,45 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "../components/ui/AlertDialog";
+import TableSkeleton from "../components/ui/TableSkeleton";
 import UploadModal from "../components/UploadModal";
 import { documentsApi, projectsApi } from "../lib/api";
+import useDocumentStore from "../store/useDocumentStore";
+import { useToast, showToast } from "../hooks/useToast";
 
 const DocumentsPage = () => {
-  const [documents, setDocuments] = useState([]);
+  const { toast } = useToast();
+  const {
+    // Document state
+    documents,
+    loading,
+    error,
+
+    // Pagination state
+    currentPage,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    hasPreviousPage,
+
+    // Filter state
+    searchTerm,
+    selectedProject,
+
+    // Actions
+    loadDocuments,
+    nextPage,
+    previousPage,
+    deleteDocument: storeDeleteDocument,
+    updateDocument: storeUpdateDocument,
+    setSearchTerm,
+    setSelectedProject,
+    applyFilters,
+    clearFilters,
+  } = useDocumentStore();
+
   const [projects, setProjects] = useState([]);
-  const [filteredDocuments, setFilteredDocuments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [projectsLoading, setProjectsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProject, setSelectedProject] = useState("");
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
 
   // Document action states
@@ -77,22 +107,6 @@ const DocumentsPage = () => {
     loadProjects();
   }, []);
 
-  useEffect(() => {
-    filterDocuments();
-  }, [documents, searchTerm, selectedProject]);
-
-  const loadDocuments = async () => {
-    try {
-      setLoading(true);
-      const response = await documentsApi.getDocuments(); // Get all documents
-      setDocuments(response.data.documents || []);
-    } catch (error) {
-      console.error("Failed to load documents:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const loadProjects = async () => {
     try {
       setProjectsLoading(true);
@@ -100,27 +114,10 @@ const DocumentsPage = () => {
       setProjects(response.data || []);
     } catch (error) {
       console.error("Failed to load projects:", error);
+      showToast.error("Error", "Failed to load projects");
     } finally {
       setProjectsLoading(false);
     }
-  };
-
-  const filterDocuments = () => {
-    let filtered = [...documents];
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter((doc) =>
-        doc.filename.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filter by project
-    if (selectedProject && selectedProject !== "all") {
-      filtered = filtered.filter((doc) => doc.projectId === selectedProject);
-    }
-
-    setFilteredDocuments(filtered);
   };
 
   const formatFileSize = (bytes) => {
@@ -150,14 +147,29 @@ const DocumentsPage = () => {
     return project?.title || "Unknown Project";
   };
 
-  const clearFilters = () => {
-    setSearchTerm("");
-    setSelectedProject("");
+  // Filter handlers
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
   };
 
-  const handleUploadComplete = () => {
-    loadDocuments(); // Refresh document list
+  const handleProjectChange = (value) => {
+    setSelectedProject(value === "all" ? "" : value);
+    applyFilters({ selectedProject: value === "all" ? "" : value });
+  };
+
+  const handleClearFilters = () => {
+    clearFilters();
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    applyFilters({ searchTerm });
+  };
+
+  const handleUploadComplete = async () => {
+    await loadDocuments(); // Refresh document list
     setUploadModalOpen(false);
+    showToast.success("Success", "Document uploaded successfully");
   };
 
   // Document action handlers
@@ -171,13 +183,16 @@ const DocumentsPage = () => {
 
     try {
       setActionLoading(true);
-      await documentsApi.deleteDocument(documentToDelete._id);
-      await loadDocuments(); // Refresh the list
+      await storeDeleteDocument(documentToDelete._id);
       setDeleteDialogOpen(false);
       setDocumentToDelete(null);
+      showToast.success(
+        "Success",
+        `Document "${documentToDelete.filename}" deleted successfully`
+      );
     } catch (error) {
-      console.error("Failed to delete document:", error);
-      alert("Failed to delete document");
+      console.error("Error deleting document:", error);
+      showToast.error("Error", "Failed to delete document. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -194,16 +209,16 @@ const DocumentsPage = () => {
 
     try {
       setActionLoading(true);
-      await documentsApi.updateDocument(documentToRename._id, {
+      await storeUpdateDocument(documentToRename._id, {
         filename: newFileName.trim(),
       });
-      await loadDocuments(); // Refresh the list
       setRenameDialogOpen(false);
       setDocumentToRename(null);
       setNewFileName("");
+      showToast.success("Success", "Document renamed successfully");
     } catch (error) {
-      console.error("Failed to rename document:", error);
-      alert("Failed to rename document");
+      console.error("Error renaming document:", error);
+      showToast.error("Error", "Failed to rename document. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -240,24 +255,24 @@ const DocumentsPage = () => {
             {/* Search Input */}
             <div className="space-y-2">
               <Label htmlFor="search">Search by name</Label>
-              <div className="relative">
+              <form onSubmit={handleSearchSubmit} className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
                   placeholder="Search documents..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10"
                 />
-              </div>
+              </form>
             </div>
 
             {/* Project Filter */}
             <div className="space-y-2">
               <Label htmlFor="project">Filter by project</Label>
               <Select
-                value={selectedProject}
-                onValueChange={setSelectedProject}
+                value={selectedProject || "all"}
+                onValueChange={handleProjectChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All projects" />
@@ -283,7 +298,7 @@ const DocumentsPage = () => {
             <div className="space-y-2 flex items-end">
               <Button
                 variant="outline"
-                onClick={clearFilters}
+                onClick={handleClearFilters}
                 className="w-full"
               >
                 Clear Filters
@@ -293,131 +308,170 @@ const DocumentsPage = () => {
 
           {/* Results Summary */}
           <div className="mt-4 text-sm text-muted-foreground">
-            Showing {filteredDocuments.length} of {documents.length} documents
+            Showing {documents.length} of {totalCount} documents
             {searchTerm && ` matching "${searchTerm}"`}
-            {selectedProject &&
-              selectedProject !== "all" &&
-              ` in ${getProjectName(selectedProject)}`}
+            {selectedProject && ` in ${getProjectName(selectedProject)}`}
           </div>
         </CardContent>
       </Card>
 
       {/* Documents Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Document Library
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
-                <p className="text-sm text-muted-foreground">
-                  Loading documents...
+      {loading ? (
+        <TableSkeleton
+          rows={10}
+          columns={6}
+          headerTitles={[
+            "File Name",
+            "Project",
+            "Status",
+            "Size",
+            "Uploaded",
+            "Actions",
+          ]}
+        />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Document Library
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {documents.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">
+                  {totalCount === 0
+                    ? "No documents yet"
+                    : "No documents match your filters"}
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {totalCount === 0
+                    ? "Upload your first document to get started"
+                    : "Try adjusting your search terms or clearing the filters"}
                 </p>
+                {totalCount === 0 ? (
+                  <Button onClick={() => setUploadModalOpen(true)}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Document
+                  </Button>
+                ) : (
+                  <Button variant="outline" onClick={handleClearFilters}>
+                    Clear Filters
+                  </Button>
+                )}
               </div>
-            </div>
-          ) : filteredDocuments.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">
-                {documents.length === 0
-                  ? "No documents yet"
-                  : "No documents match your filters"}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {documents.length === 0
-                  ? "Upload your first document to get started"
-                  : "Try adjusting your search terms or clearing the filters"}
-              </p>
-              {documents.length === 0 ? (
-                <Button onClick={() => setUploadModalOpen(true)}>
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Document
-                </Button>
-              ) : (
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>File Name</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Uploaded</TableHead>
-                  <TableHead className="w-[50px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDocuments.map((document) => (
-                  <TableRow key={document._id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        {document.filename}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm">
-                        {getProjectName(document.projectId)}
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>File Name</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead>Uploaded</TableHead>
+                      <TableHead className="w-[50px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {documents.map((document) => (
+                      <TableRow key={document._id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            {document.filename}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {getProjectName(document.projectId)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(document.vectorized)}
+                            <span className="text-sm">
+                              {getStatusText(document.vectorized)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatFileSize(document.size)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(document.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleRenameClick(document)}
+                                className="cursor-pointer"
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Rename
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(document)}
+                                className="cursor-pointer text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="text-sm text-muted-foreground">
+                      Page {currentPage} of {totalPages} ({totalCount} total
+                      documents)
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={previousPage}
+                        disabled={!hasPreviousPage}
+                      >
+                        <ChevronLeft className="h-4 w-4 mr-1" />
+                        Previous
+                      </Button>
+                      <span className="text-sm text-muted-foreground px-2">
+                        {currentPage} / {totalPages}
                       </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(document.vectorized)}
-                        <span className="text-sm">
-                          {getStatusText(document.vectorized)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatFileSize(document.size)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(document.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleRenameClick(document)}
-                            className="cursor-pointer"
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Rename
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteClick(document)}
-                            className="cursor-pointer text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={nextPage}
+                        disabled={!hasNextPage}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Upload Modal */}
       <UploadModal
