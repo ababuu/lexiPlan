@@ -338,7 +338,7 @@ const ChatWindow = () => {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Message LexiPlan AI..."
                   disabled={isLoading}
-                  className="w-full pr-12 py-3 rounded-xl border-primary/20 bg-background/90 focus:border-primary focus:ring-primary/20 placeholder:text-muted-foreground shadow-sm"
+                  className="w-full pr-12 py-3 rounded-xl border-primary/20 bg-background/90  placeholder:text-muted-foreground shadow-sm"
                 />
                 <Button
                   type="submit"
