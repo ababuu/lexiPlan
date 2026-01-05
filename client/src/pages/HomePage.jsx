@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/Card";
+import { Card, CardContent } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import StatCardSkeleton from "../components/ui/StatCardSkeleton";
+import CardSkeleton from "../components/ui/CardSkeleton";
 import {
   Plus,
   Upload,
@@ -93,12 +89,45 @@ const HomePage = () => {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading dashboard...</p>
+      <div className="p-6 space-y-8 max-w-7xl mx-auto">
+        {/* Hero Section */}
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+            <div className="h-10 w-64 bg-muted animate-pulse rounded" />
           </div>
+          <div className="h-6 w-96 bg-muted animate-pulse rounded mx-auto" />
+          <div className="h-4 w-80 bg-muted animate-pulse rounded mx-auto" />
+
+          {/* Search Bar */}
+          <div className="max-w-md mx-auto">
+            <div className="h-10 w-full bg-muted animate-pulse rounded" />
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+
+        {/* Quick Actions */}
+        <div>
+          <div className="h-8 w-32 bg-muted animate-pulse rounded mb-6" />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <CardSkeleton contentRows={4} />
+            <CardSkeleton contentRows={4} />
+            <CardSkeleton contentRows={4} />
+            <CardSkeleton contentRows={4} />
+          </div>
+        </div>
+
+        {/* Recent Activity & Projects */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <CardSkeleton headerHeight="h-6" contentRows={6} />
+          <CardSkeleton headerHeight="h-6" contentRows={8} />
         </div>
       </div>
     );

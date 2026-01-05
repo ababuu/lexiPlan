@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/Card";
+import CardSkeleton from "./ui/CardSkeleton";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Label } from "./ui/Label";
@@ -94,12 +95,26 @@ const ProjectsView = () => {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading projects...</p>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-8 w-32 bg-muted animate-pulse rounded mb-2" />
+            <div className="h-4 w-80 bg-muted animate-pulse rounded" />
           </div>
+          <div className="h-10 w-32 bg-muted animate-pulse rounded" />
+        </div>
+
+        {/* Projects Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }, (_, i) => (
+            <CardSkeleton
+              key={i}
+              headerHeight="h-6"
+              contentRows={4}
+              className="min-h-[200px]"
+            />
+          ))}
         </div>
       </div>
     );
