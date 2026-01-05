@@ -248,7 +248,7 @@ const ProjectsView = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={(e) => handleDeleteProject(e, project._id)}
                       >
                         <Trash2 className="w-4 h-4" />

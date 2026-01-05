@@ -128,15 +128,11 @@ const ProjectDetailPage = () => {
           <Skeleton className="h-10 w-32" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <TableSkeleton
-              rows={5}
-              columns={4}
-              headerTitles={["Document", "Status", "Size", "Date"]}
-            />
-          </div>
-        </div>
+        <TableSkeleton
+          rows={3}
+          columns={4}
+          headerTitles={["Document", "Status", "Size", "Date"]}
+        />
       </div>
     );
   }
