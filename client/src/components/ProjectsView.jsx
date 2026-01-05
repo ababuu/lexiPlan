@@ -96,25 +96,32 @@ const ProjectsView = () => {
   if (loading) {
     return (
       <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-8 w-32 bg-muted animate-pulse rounded mb-2" />
-            <div className="h-4 w-80 bg-muted animate-pulse rounded" />
+        {/* Header Section Skeleton */}
+        <div className="flex justify-between items-center">
+          <div className="space-y-2">
+            <div className="h-9 w-32 bg-muted animate-pulse rounded" />
+            <div className="h-5 w-80 bg-muted animate-pulse rounded" />
           </div>
           <div className="h-10 w-32 bg-muted animate-pulse rounded" />
         </div>
 
-        {/* Projects Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }, (_, i) => (
-            <CardSkeleton
-              key={i}
-              headerHeight="h-6"
-              contentRows={4}
-              className="min-h-[200px]"
-            />
-          ))}
+        {/* Projects Grid Skeleton */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="h-7 w-48 bg-muted animate-pulse rounded" />
+            <div className="h-4 w-40 bg-muted animate-pulse rounded" />
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }, (_, i) => (
+              <CardSkeleton
+                key={i}
+                headerHeight="h-6"
+                contentRows={4}
+                className="min-h-[200px]"
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -122,33 +129,42 @@ const ProjectsView = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header Section */}
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold mb-2">Projects</h2>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Projects
+          </h1>
           <p className="text-muted-foreground">
             Organize your documents and AI interactions by project
           </p>
         </div>
-        <Button onClick={() => setShowCreateForm(!showCreateForm)}>
-          <Plus className="w-4 h-4 mr-2" />
+        <Button
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
           New Project
         </Button>
       </div>
 
       {/* Create Project Form */}
       {showCreateForm && (
-        <Card>
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Create New Project</CardTitle>
+            <CardTitle className="text-xl">Create New Project</CardTitle>
             <CardDescription>
               Set up a new project to organize your documents and conversations
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreateProject} className="space-y-4">
-              <div>
-                <Label htmlFor="title">Project Title</Label>
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-sm font-medium">
+                  Project Title
+                </Label>
                 <Input
+                  id="title"
                   value={newProject.title}
                   onChange={(e) =>
                     setNewProject((prev) => ({
@@ -156,14 +172,17 @@ const ProjectsView = () => {
                       title: e.target.value,
                     }))
                   }
-                  placeholder="Enter project title"
+                  placeholder="Enter project title..."
                   required
                 />
               </div>
 
-              <div>
-                <Label htmlFor="description">Description</Label>
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-medium">
+                  Description
+                </Label>
                 <Input
+                  id="description"
                   value={newProject.description}
                   onChange={(e) =>
                     setNewProject((prev) => ({
@@ -171,11 +190,11 @@ const ProjectsView = () => {
                       description: e.target.value,
                     }))
                   }
-                  placeholder="Enter project description"
+                  placeholder="Brief description of your project..."
                 />
               </div>
 
-              <div className="flex space-x-2">
+              <div className="flex space-x-4 pt-2">
                 <Button type="submit">Create Project</Button>
                 <Button
                   type="button"
@@ -191,72 +210,101 @@ const ProjectsView = () => {
       )}
 
       {/* Projects Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {projects.map((project) => (
-          <Card
-            key={project._id}
-            className="border border-[hsl(var(--box-border))] shadow-md rounded-[24px] dark:border-border/50 dark:shadow-none dark:rounded-lg hover:shadow-[rgba(0,30,43,0.5)_0px_12px_30px_-8px] dark:hover:shadow-none transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:border-primary/50"
-            onClick={() => handleProjectClick(project._id)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  <FolderOpen className="w-5 h-5 text-blue-500" />
-                  <CardTitle className="text-lg">{project.title}</CardTitle>
-                </div>
-                <div
-                  className="flex space-x-1"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-red-500 hover:text-red-700"
-                    onClick={(e) => handleDeleteProject(e, project._id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
+      {projects.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">
+              Your Projects ({projects.length})
+            </h2>
+            <div className="text-sm text-muted-foreground">
+              Click on a project to view details
+            </div>
+          </div>
 
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                {project.description || "No description provided"}
-              </p>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <Card
+                key={project._id}
+                className="group relative overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]"
+                onClick={() => handleProjectClick(project._id)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <FolderOpen className="w-5 h-5 text-primary" />
+                      </div>
+                      <CardTitle className="text-lg font-semibold truncate">
+                        {project.title}
+                      </CardTitle>
+                    </div>
+                    <div
+                      className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={(e) => handleDeleteProject(e, project._id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
 
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span
-                  className={`px-2 py-1 rounded-full ${
-                    project.status === "active"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {project.status}
-                </span>
-                <span>Created {formatDate(project.createdAt)}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+                    {project.description || "No description provided"}
+                  </p>
 
-      {projects.length === 0 && (
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        project.status === "active"
+                          ? "bg-primary/20 text-primary"
+                          : project.status === "completed"
+                          ? "bg-secondary/20 text-secondary"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {project.status.charAt(0).toUpperCase() +
+                        project.status.slice(1)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(project.createdAt)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {projects.length === 0 && !showCreateForm && (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <FolderOpen className="w-12 h-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No projects yet</h3>
-            <p className="text-muted-foreground text-center mb-4">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="p-4 bg-primary/10 rounded-full mb-6">
+              <FolderOpen className="w-12 h-12 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-3">No projects yet</h3>
+            <p className="text-muted-foreground mb-6 max-w-md">
               Create your first project to start organizing your documents and
-              AI conversations
+              AI conversations. Projects help you keep everything organized and
+              easily accessible.
             </p>
-            <Button onClick={() => setShowCreateForm(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Project
+            <Button
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Create Your First Project
             </Button>
           </CardContent>
         </Card>
