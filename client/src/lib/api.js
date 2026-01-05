@@ -73,8 +73,11 @@ export const documentsApi = {
         "Content-Type": "multipart/form-data",
       },
     }),
-  getDocuments: (projectId) => {
-    const params = projectId ? { projectId } : {};
+  getDocuments: (projectId, additionalParams = {}) => {
+    const params = {
+      ...(projectId && { projectId }),
+      ...additionalParams,
+    };
     return api.get("/documents", { params });
   },
   getDocumentById: (id) => api.get(`/documents/${id}`),
