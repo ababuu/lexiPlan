@@ -26,6 +26,7 @@ export const register = async (req, res, next) => {
       password,
       orgId: org._id,
       role: "admin",
+      orgName: orgName,
     });
 
     const token = generateToken(user);
@@ -34,7 +35,7 @@ export const register = async (req, res, next) => {
       user: {
         id: user._id,
         email: user.email,
-        orgName,
+        orgName: user.orgName,
         role: user.role,
       },
     });

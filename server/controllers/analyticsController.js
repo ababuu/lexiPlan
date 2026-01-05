@@ -72,7 +72,7 @@ export const getAnalytics = async (req, res) => {
 
     const messagesByDayObj = {};
 
-    allConversations.forEach((conv) => {
+    conversations.forEach((conv) => {
       conv.messages.forEach((msg) => {
         const msgDate = msg.timestamp || conv.createdAt;
         if (msgDate >= weekAgo) {
