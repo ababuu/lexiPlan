@@ -16,7 +16,8 @@ api.interceptors.request.use(async (config) => {
     config.method === "get" ||
     config.url?.includes("/auth/login") ||
     config.url?.includes("/auth/register") ||
-    config.url?.includes("/auth/logout")
+    config.url?.includes("/auth/logout") ||
+    config.url?.includes("/auth/accept-invite")
   ) {
     return config;
   }
@@ -54,6 +55,7 @@ export const authApi = {
   login: (credentials) => api.post("/auth/login", credentials),
   register: (userData) => api.post("/auth/register", userData),
   logout: () => api.post("/auth/logout"),
+  acceptInvite: (data) => api.post("/auth/accept-invite", data),
 };
 
 // Projects API methods
@@ -168,6 +170,15 @@ export const chatApi = {
 // Analytics API
 export const analyticsApi = {
   getAnalytics: () => api.get("/analytics"),
+};
+
+// Organization/Team API
+export const organizationApi = {
+  inviteUser: (data) => api.post("/org/invite", data),
+  getTeamMembers: () => api.get("/org/team"),
+  updateUserRole: (userId, data) => api.put(`/org/team/${userId}/role`, data),
+  removeTeamMember: (userId) => api.delete(`/org/team/${userId}`),
+  getAuditLogs: (params = {}) => api.get("/org/logs", { params }),
 };
 
 export default api;
