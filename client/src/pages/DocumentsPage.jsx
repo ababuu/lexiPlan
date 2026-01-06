@@ -58,6 +58,7 @@ import UploadModal from "../components/UploadModal";
 import { documentsApi, projectsApi } from "../lib/api";
 import useDocumentStore from "../store/useDocumentStore";
 import { useToast, showToast } from "../hooks/useToast";
+import { NotViewer } from "../components/HasAccess";
 
 const DocumentsPage = () => {
   const { toast } = useToast();
@@ -233,13 +234,15 @@ const DocumentsPage = () => {
             Organization-wide document library
           </p>
         </div>
-        <Button
-          className="flex items-center gap-2"
-          onClick={() => setUploadModalOpen(true)}
-        >
-          <Upload className="h-4 w-4" />
-          Upload Document
-        </Button>
+        <NotViewer>
+          <Button
+            className="flex items-center gap-2"
+            onClick={() => setUploadModalOpen(true)}
+          >
+            <Upload className="h-4 w-4" />
+            Upload Document
+          </Button>
+        </NotViewer>
       </div>
 
       {/* Filter Bar */}
@@ -352,10 +355,12 @@ const DocumentsPage = () => {
                     : "Try adjusting your search terms or clearing the filters"}
                 </p>
                 {totalCount === 0 ? (
-                  <Button onClick={() => setUploadModalOpen(true)}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Document
-                  </Button>
+                  <NotViewer>
+                    <Button onClick={() => setUploadModalOpen(true)}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Document
+                    </Button>
+                  </NotViewer>
                 ) : (
                   <Button variant="outline" onClick={handleClearFilters}>
                     Clear Filters
@@ -420,13 +425,15 @@ const DocumentsPage = () => {
                                 <Edit className="h-4 w-4 mr-2" />
                                 Rename
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteClick(document)}
-                                className="cursor-pointer text-destructive focus:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
+                              <NotViewer>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteClick(document)}
+                                  className="cursor-pointer text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </NotViewer>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

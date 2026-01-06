@@ -11,8 +11,19 @@ import CardSkeleton from "./ui/CardSkeleton";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Label } from "./ui/Label";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "./ui/AlertDialog";
 import { FolderOpen, Plus, Edit, Trash2 } from "lucide-react";
 import { projectsApi } from "../lib/api";
+import { NotViewer } from "./HasAccess";
 
 const ProjectsView = () => {
   const navigate = useNavigate();
@@ -24,6 +35,11 @@ const ProjectsView = () => {
     description: "",
     status: "todo",
   });
+
+  // Delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -65,31 +81,37 @@ const ProjectsView = () => {
     navigate(`/projects/${projectId}`);
   };
 
-  const handleDeleteProject = async (e, projectId) => {
+  const handleDeleteClick = (e, project) => {
     e.stopPropagation(); // Prevent card click
-    if (
-      window.confirm(
-        "Are you sure you want to delete this project? This will also delete all associated documents."
-      )
-    ) {
-      try {
-        const response = await projectsApi.deleteProject(projectId);
-        const data = response.data;
+    setProjectToDelete(project);
+    setDeleteDialogOpen(true);
+  };
 
-        // Show success message with details
-        if (data.documentsDeleted > 0) {
-          alert(
-            `Project "${data.projectTitle}" deleted successfully along with ${data.documentsDeleted} associated document(s).`
-          );
-        } else {
-          alert(`Project "${data.projectTitle}" deleted successfully.`);
-        }
+  const handleDeleteConfirm = async () => {
+    if (!projectToDelete) return;
 
-        loadProjects();
-      } catch (error) {
-        console.error("Failed to delete project:", error);
-        alert("Failed to delete project. Please try again.");
+    try {
+      setActionLoading(true);
+      const response = await projectsApi.deleteProject(projectToDelete._id);
+      const data = response.data;
+
+      // Show success message with details
+      if (data.documentsDeleted > 0) {
+        alert(
+          `Project "${data.projectTitle}" deleted successfully along with ${data.documentsDeleted} associated document(s).`
+        );
+      } else {
+        alert(`Project "${data.projectTitle}" deleted successfully.`);
       }
+
+      await loadProjects();
+      setDeleteDialogOpen(false);
+      setProjectToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      alert("Failed to delete project. Please try again.");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -139,13 +161,15 @@ const ProjectsView = () => {
             Organize your documents and AI interactions by project
           </p>
         </div>
-        <Button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          New Project
-        </Button>
+        <NotViewer>
+          <Button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Project
+          </Button>
+        </NotViewer>
       </div>
 
       {/* Create Project Form */}
@@ -238,22 +262,24 @@ const ProjectsView = () => {
                         {project.title}
                       </CardTitle>
                     </div>
-                    <div
-                      className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={(e) => handleDeleteProject(e, project._id)}
+                    <NotViewer>
+                      <div
+                        className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => handleDeleteClick(e, project)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </NotViewer>
                   </div>
                 </CardHeader>
 
@@ -309,6 +335,37 @@ const ProjectsView = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{projectToDelete?.title}"? This
+              action cannot be undone and will also delete all associated
+              documents.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={actionLoading}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={actionLoading}
+            >
+              {actionLoading ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

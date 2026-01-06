@@ -170,8 +170,8 @@ const ProjectChatWidget = () => {
                             <div
                               className={`max-w-[280px] rounded-lg px-3 py-2 ${
                                 message.role === "user"
-                                  ? "bg-[#70c171] text-white"
-                                  : "bg-gray-100 text-gray-900"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted/50 border border-primary/10"
                               }`}
                             >
                               <div className="prose prose-sm max-w-none">
@@ -203,7 +203,7 @@ const ProjectChatWidget = () => {
                           <div className="w-8 h-8 rounded-full bg-[#70c171]/10 flex items-center justify-center flex-shrink-0 mt-1">
                             <Bot className="w-4 h-4 text-[#70c171]" />
                           </div>
-                          <div className="max-w-[280px] rounded-lg px-3 py-2 bg-gray-100 text-gray-900">
+                          <div className="max-w-[280px] rounded-lg px-3 py-2 bg-primary/10">
                             <p className="text-sm whitespace-pre-wrap">
                               {streamingMessage}
                             </p>
@@ -246,7 +246,7 @@ const ProjectChatWidget = () => {
                 </div>
 
                 {/* Input Area - Fixed at bottom - Fixed at bottom */}
-                <div className="border-t p-4 flex-shrink-0 bg-white">
+                <div className="border-t p-4 flex-shrink-0 bg-background/95">
                   <div className="flex gap-2">
                     <Input
                       value={inputMessage}
