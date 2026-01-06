@@ -10,14 +10,26 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    password: { type: String, required: true },
+    password: {
+      type: String,
+      required: false, // Not required initially for invited users
+    },
     orgId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",
       required: true,
       index: true,
     },
-    role: { type: String, enum: ["admin", "member"], default: "member" },
+    role: {
+      type: String,
+      enum: ["admin", "member", "viewer"],
+      default: "member",
+    },
+    status: {
+      type: String,
+      enum: ["active", "pending", "suspended"],
+      default: "active",
+    },
   },
   { timestamps: true }
 );
@@ -30,6 +42,10 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  // Handle pending users who haven't set a password yet
+  if (!this.password) {
+    return false;
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
