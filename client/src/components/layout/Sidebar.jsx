@@ -7,9 +7,11 @@ import {
   FileText,
   Building,
   Home,
+  Users,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import useAuthStore from "../../store/useAuthStore";
+import HasAccess, { AdminOnly } from "../HasAccess";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -22,6 +24,10 @@ const Sidebar = () => {
     { id: "chat", name: "AI Chat", icon: MessageSquare, path: "/chat" },
     { id: "documents", name: "Documents", icon: FileText, path: "/documents" },
     { id: "analytics", name: "Analytics", icon: BarChart3, path: "/analytics" },
+  ];
+
+  const adminNavigation = [
+    { id: "team", name: "Team Settings", icon: Users, path: "/settings/team" },
   ];
 
   const isActive = (path) => {
@@ -57,6 +63,34 @@ const Sidebar = () => {
               </Button>
             );
           })}
+
+          {/* Admin-only navigation */}
+          <AdminOnly>
+            <div className="pt-4 mt-4 border-t border-border/50">
+              <p className="text-xs font-medium text-muted-foreground px-3 mb-2">
+                Administration
+              </p>
+              {adminNavigation.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                return (
+                  <Button
+                    key={item.id}
+                    variant={active ? "default" : "ghost"}
+                    className={`w-full justify-start transition-all duration-200 relative ${
+                      active
+                        ? "bg-primary/10 text-primary border-l-4 border-l-primary hover:bg-primary/15 dark:bg-primary/20 dark:text-white dark:border-l-primary dark:hover:bg-primary/25"
+                        : "hover:bg-muted/50 text-foreground/80 hover:text-foreground border-l-4 border-l-transparent"
+                    }`}
+                    onClick={() => navigate(item.path)}
+                  >
+                    <Icon className="mr-3 h-4 w-4" />
+                    {item.name}
+                  </Button>
+                );
+              })}
+            </div>
+          </AdminOnly>
         </nav>
       </div>
     </div>
