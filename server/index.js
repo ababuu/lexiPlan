@@ -10,6 +10,7 @@ import projectRoutes from "./routes/projectRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import organizationRoutes from "./routes/organizationRoutes.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use((req, res, next) => {
     "/api/auth/login",
     "/api/auth/me",
     "/api/auth/logout",
+    "/api/auth/accept-invite",
   ];
 
   if (csrfExemptPaths.includes(req.path)) return next();
@@ -70,6 +72,7 @@ app.use("/api/projects", protect, projectRoutes);
 app.use("/api/documents", protect, documentRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/org", organizationRoutes);
 
 // 4. Global Error Handler (The Senior Touch)
 app.use((err, req, res, next) => {
