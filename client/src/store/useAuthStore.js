@@ -52,6 +52,7 @@ const useAuthStore = create((set, get) => ({
         user: userData,
         isAuthenticated: true,
         error: null,
+        isInitializing: false,
       });
 
       // // Clear chat data if switching to different org
@@ -81,6 +82,7 @@ const useAuthStore = create((set, get) => ({
         user,
         isAuthenticated: true,
         error: null,
+        isInitializing: false,
       });
 
       return user;
@@ -113,6 +115,15 @@ const useAuthStore = create((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  setUser: (userData) => {
+    set({
+      user: userData,
+      isAuthenticated: true,
+      error: null,
+      isInitializing: false,
+    });
+  },
 
   // Computed getters
   getUser: () => get().user,
