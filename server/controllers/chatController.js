@@ -203,6 +203,7 @@ const saveConversation = async (
 export const getChatHistory = async (req, res) => {
   try {
     const conversations = await Conversation.find({
+      user: req.userId,
       orgId: req.orgId,
       $or: [
         { projectId: { $exists: false } }, // Legacy conversations without projectId field
@@ -235,6 +236,7 @@ export const getProjectChatHistory = async (req, res) => {
     const { projectId } = req.params;
 
     const conversations = await Conversation.find({
+      user: req.userId,
       orgId: req.orgId,
       projectId: projectId, // Only get project-specific conversations
     })
@@ -265,6 +267,7 @@ export const getConversation = async (req, res) => {
 
     const conversation = await Conversation.findOne({
       _id: id,
+      user: req.userId,
       orgId: req.orgId,
     });
 
@@ -286,6 +289,7 @@ export const deleteConversation = async (req, res) => {
 
     const conversation = await Conversation.findOneAndDelete({
       _id: id,
+      user: req.userId,
       orgId: req.orgId,
     });
 
