@@ -1,6 +1,11 @@
 import Document from "../models/Document.js";
-import { deleteDocumentVectors } from "../services/vectorService.js";
+import {
+  deleteDocumentVectors,
+  processDocument,
+} from "../services/vectorService.js";
 import asyncHandler from "../middleware/asyncHandler.js";
+import { PDFParse } from "pdf-parse";
+import AuditLog from "../models/AuditLog.js";
 
 // GET /api/documents - Get documents for organization with pagination and filtering
 export const getDocuments = asyncHandler(async (req, res) => {
@@ -196,6 +201,78 @@ export const updateDocument = asyncHandler(async (req, res) => {
         filename: document.filename,
         updatedAt: document.updatedAt,
       },
+    },
+  });
+});
+
+// POST /api/documents/upload - Upload and process document
+export const uploadDocument = asyncHandler(async (req, res) => {
+  const { projectId } = req.body;
+  const orgId = req.orgId;
+  const userId = req.userId;
+
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: "No file uploaded",
+    });
+  }
+
+  // 1. Initialize the Parser with the buffer
+  const parser = new PDFParse({ data: req.file.buffer });
+
+  // 2. Extract the text
+  const result = await parser.getText();
+
+  // 3. Always destroy the parser instance to free up memory
+  await parser.destroy();
+
+  // 4. Save metadata
+  const newDoc = await Document.create({
+    filename: req.file.originalname,
+    orgId: orgId,
+    projectId,
+    content: result.text,
+    size: req.file.size,
+    vectorized: false,
+  });
+
+  // 5. Background vectorization
+  processDocument(result.text, newDoc._id, orgId, projectId)
+    .then(async () => {
+      newDoc.vectorized = true;
+      await newDoc.save();
+      console.log(`✅ Vectorization complete: ${newDoc.filename}`);
+    })
+    .catch((err) => console.error("❌ Background Error:", err));
+
+  // 6. Log the document upload action
+  const auditData = {
+    performer: userId,
+    action: "UPLOAD_DOCUMENT",
+    target: req.file.originalname,
+    targetId: newDoc._id,
+    orgId: orgId,
+    metadata: {
+      method: "POST",
+      path: "/upload",
+      statusCode: 202,
+      projectId: projectId,
+      fileSize: req.file.size,
+      mimeType: req.file.mimetype,
+    },
+  };
+
+  AuditLog.logAction(auditData).catch((err) =>
+    console.error("Audit logging failed for document upload:", err)
+  );
+
+  res.status(202).json({
+    success: true,
+    message: "Document uploaded and processing started",
+    data: {
+      docId: newDoc._id,
+      filename: newDoc.filename,
     },
   });
 });
