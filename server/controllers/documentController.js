@@ -62,7 +62,7 @@ export const getDocuments = asyncHandler(async (req, res) => {
       .sort(sort)
       .skip(skip)
       .limit(limitNum)
-      .populate("projectId", "name description")
+      .populate("projectId", "title description")
       .select(
         "filename orgId projectId content vectorized createdAt updatedAt size"
       ),
@@ -99,7 +99,7 @@ export const getDocumentById = asyncHandler(async (req, res) => {
   const document = await Document.findOne({
     _id: id,
     orgId,
-  }).populate("projectId", "name description");
+  }).populate("projectId", "title description");
 
   if (!document) {
     return res.status(404).json({
@@ -114,6 +114,39 @@ export const getDocumentById = asyncHandler(async (req, res) => {
       document,
     },
   });
+});
+
+// GET /api/documents/:id/pdf - Get PDF file
+export const getPdfDocument = asyncHandler(async (req, res) => {
+  const orgId = req.orgId;
+  const { id } = req.params;
+
+  const document = await Document.findOne({
+    _id: id,
+    orgId,
+  }).select("pdfBuffer filename");
+
+  if (!document) {
+    return res.status(404).json({
+      success: false,
+      message: "Document not found",
+    });
+  }
+
+  if (!document.pdfBuffer) {
+    return res.status(404).json({
+      success: false,
+      message: "PDF file not available",
+    });
+  }
+
+  // Set proper headers for PDF display
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `inline; filename="${document.filename}"`
+  );
+  res.send(document.pdfBuffer);
 });
 
 // DELETE /api/documents/:id - Delete document with vectors
@@ -218,6 +251,15 @@ export const uploadDocument = asyncHandler(async (req, res) => {
     });
   }
 
+  // Check file size (2MB = 2 * 1024 * 1024 bytes)
+  const maxSize = 2 * 1024 * 1024;
+  if (req.file.size > maxSize) {
+    return res.status(400).json({
+      success: false,
+      message: "File size exceeds 2MB limit",
+    });
+  }
+
   // 1. Initialize the Parser with the buffer
   const parser = new PDFParse({ data: req.file.buffer });
 
@@ -234,6 +276,7 @@ export const uploadDocument = asyncHandler(async (req, res) => {
     projectId,
     content: result.text,
     size: req.file.size,
+    pdfBuffer: req.file.buffer, // Store original PDF
     vectorized: false,
   });
 

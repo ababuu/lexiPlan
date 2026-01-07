@@ -88,6 +88,10 @@ export const documentsApi = {
     return api.get("/documents", { params });
   },
   getDocumentById: (id) => api.get(`/documents/${id}`),
+  getPdfDocument: (id) =>
+    api.get(`/documents/${id}/pdf`, {
+      responseType: "arraybuffer",
+    }),
   deleteDocument: (id) => api.delete(`/documents/${id}`),
   updateDocument: (id, data) => api.put(`/documents/${id}`, data),
 };

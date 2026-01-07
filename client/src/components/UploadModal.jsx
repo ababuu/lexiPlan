@@ -84,7 +84,17 @@ const UploadModal = ({
   };
 
   const handleFiles = (newFiles) => {
-    const pdfFiles = newFiles.filter((file) => file.type === "application/pdf");
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    const pdfFiles = newFiles.filter((file) => {
+      if (file.type !== "application/pdf") {
+        return false;
+      }
+      if (file.size > maxSize) {
+        alert(`File "${file.name}" exceeds 2MB limit and will be skipped.`);
+        return false;
+      }
+      return true;
+    });
 
     const fileObjects = pdfFiles.map((file) => ({
       id: Date.now() + Math.random(),
@@ -270,7 +280,7 @@ const UploadModal = ({
                 Drop PDF files here or click to browse
               </p>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Supports PDF files up to 10MB each
+                Supports PDF files up to 2MB each
               </p>
             </div>
 

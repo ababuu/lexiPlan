@@ -1,22 +1,25 @@
 import express from "express";
-import multer from "multer";
+import upload, { handleUploadError } from "../middleware/upload.js";
 import { logAction, targetExtractors } from "../middleware/auditLogger.js";
 import {
   getDocuments,
   getDocumentById,
+  getPdfDocument,
   deleteDocument,
   updateDocument,
   uploadDocument,
 } from "../controllers/documentController.js";
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
 // GET /api/documents - Get documents with optional project filter
 router.get("/", getDocuments);
 
 // GET /api/documents/:id - Get specific document
 router.get("/:id", getDocumentById);
+
+// GET /api/documents/:id/pdf - Get PDF file
+router.get("/:id/pdf", getPdfDocument);
 
 // PUT /api/documents/:id - Update document
 router.put(
@@ -33,6 +36,11 @@ router.delete(
 );
 
 // POST /api/documents/upload - Upload document
-router.post("/upload", upload.single("file"), uploadDocument);
+router.post(
+  "/upload",
+  upload.single("file"),
+  handleUploadError,
+  uploadDocument
+);
 
 export default router;

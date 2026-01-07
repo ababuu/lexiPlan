@@ -54,4 +54,10 @@ conversationSchema.pre("save", function (next) {
   next();
 });
 
+// Indexes for better query performance
+conversationSchema.index({ orgId: 1, projectId: 1 });
+conversationSchema.index({ orgId: 1, updatedAt: -1 });
+conversationSchema.index({ orgId: 1, createdAt: -1 });
+conversationSchema.index({ "messages.timestamp": 1 });
+
 export default mongoose.model("Conversation", conversationSchema);

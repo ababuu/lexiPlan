@@ -35,84 +35,107 @@ export const getAnalytics = async (req, res) => {
       return acc;
     }, {});
 
-    // Documents per project with actual project names
-
-    const allDocuments = await Document.find({ orgId }).populate(
-      "projectId",
-      "title"
-    );
-
-    const documentsByProject = allDocuments.reduce((acc, doc) => {
-      const projectName = doc.projectId?.title || "Unnamed Project";
-      const existing = acc.find((item) => item.projectName === projectName);
-      if (existing) {
-        existing.documentCount += 1;
-      } else {
-        acc.push({
-          _id: doc.projectId?._id || "unknown",
-          projectName: projectName,
-          documentCount: 1,
-          vectorizedCount: doc.vectorized ? 1 : 0,
-        });
-      }
-      return acc;
-    }, []);
-
-    // 3. Conversation Analytics
-    const conversations = await Conversation.find({ orgId }).select(
-      "title messages createdAt projectId updatedAt"
-    );
-    const totalConversations = conversations.length;
-
-    // Total messages across all conversations
-    const totalMessages = conversations.reduce(
-      (total, conv) => total + conv.messages.length,
-      0
-    );
-
-    const messagesByDayObj = {};
-
-    conversations.forEach((conv) => {
-      conv.messages.forEach((msg) => {
-        const msgDate = msg.timestamp || conv.createdAt;
-        if (msgDate >= weekAgo) {
-          const dateKey = msgDate.toISOString().split("T")[0];
-          messagesByDayObj[dateKey] = (messagesByDayObj[dateKey] || 0) + 1;
-        }
-      });
-    });
-
-    const messagesByDay = Object.entries(messagesByDayObj)
-      .map(([date, count]) => ({ _id: date, count }))
-      .sort((a, b) => a._id.localeCompare(b._id));
-
-    // Conversations by project
-    const conversationsByProject = await Conversation.aggregate([
+    // Documents per project using aggregation (much faster)
+    const documentsByProject = await Document.aggregate([
+      { $match: { orgId } },
       {
-        $match: {
-          orgId: orgId,
-          projectId: { $exists: true, $ne: null },
+        $group: {
+          _id: "$projectId",
+          documentCount: { $sum: 1 },
+          vectorizedCount: {
+            $sum: { $cond: [{ $eq: ["$vectorized", true] }, 1, 0] },
+          },
         },
       },
       {
         $lookup: {
           from: "projects",
-          localField: "projectId",
+          localField: "_id",
           foreignField: "_id",
           as: "project",
         },
       },
-      { $unwind: "$project" },
+      { $unwind: { path: "$project", preserveNullAndEmptyArrays: true } },
       {
-        $group: {
-          _id: "$project._id",
-          projectName: { $first: "$project.title" },
-          conversationCount: { $sum: 1 },
-          totalMessages: { $sum: { $size: "$messages" } },
+        $project: {
+          _id: 1,
+          projectName: { $ifNull: ["$project.title", "Unnamed Project"] },
+          documentCount: 1,
+          vectorizedCount: 1,
         },
       },
-      { $sort: { conversationCount: -1 } },
+      { $sort: { documentCount: -1 } },
     ]);
+
+    // 3. Conversation Analytics - optimized with aggregation
+    const [conversationStats, messagesByDay, conversationsByProject] =
+      await Promise.all([
+        // Get total conversations and messages count
+        Conversation.aggregate([
+          { $match: { orgId } },
+          {
+            $group: {
+              _id: null,
+              totalConversations: { $sum: 1 },
+              totalMessages: { $sum: { $size: "$messages" } },
+            },
+          },
+        ]),
+
+        // Messages by day (last 7 days)
+        Conversation.aggregate([
+          { $match: { orgId } },
+          { $unwind: "$messages" },
+          {
+            $match: {
+              "messages.timestamp": { $gte: weekAgo },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$messages.timestamp",
+                },
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ]),
+
+        // Conversations by project
+        Conversation.aggregate([
+          {
+            $match: {
+              orgId: orgId,
+              projectId: { $exists: true, $ne: null },
+            },
+          },
+          {
+            $lookup: {
+              from: "projects",
+              localField: "projectId",
+              foreignField: "_id",
+              as: "project",
+            },
+          },
+          { $unwind: "$project" },
+          {
+            $group: {
+              _id: "$project._id",
+              projectName: { $first: "$project.title" },
+              conversationCount: { $sum: 1 },
+              totalMessages: { $sum: { $size: "$messages" } },
+            },
+          },
+          { $sort: { conversationCount: -1 } },
+        ]),
+      ]);
+
+    const totalConversations = conversationStats[0]?.totalConversations || 0;
+    const totalMessages = conversationStats[0]?.totalMessages || 0;
 
     // 4. User Analytics
     const totalUsers = await User.countDocuments({ orgId });

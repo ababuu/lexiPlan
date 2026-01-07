@@ -15,9 +15,16 @@ const documentSchema = new mongoose.Schema(
       required: true,
     },
     content: String, // Raw text for backup
+    size: { type: Number }, // File size in bytes (optional for backward compatibility)
+    pdfBuffer: { type: Buffer }, // Original PDF file buffer
     vectorized: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
+
+// Indexes for better query performance
+documentSchema.index({ orgId: 1, projectId: 1 });
+documentSchema.index({ orgId: 1, vectorized: 1 });
+documentSchema.index({ orgId: 1, createdAt: -1 });
 
 export default mongoose.model("Document", documentSchema);
