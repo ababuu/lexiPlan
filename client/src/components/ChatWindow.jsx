@@ -6,7 +6,16 @@ import { Input } from "./ui/Input";
 import { Button } from "./ui/Button";
 import { ScrollArea } from "./ui/ScrollArea";
 import ChatSkeleton from "./ui/ChatSkeleton";
-import { Send, Bot, User, Plus, Trash2, MessageSquare } from "lucide-react";
+import {
+  Send,
+  Bot,
+  User,
+  Plus,
+  Trash2,
+  MessageSquare,
+  Menu,
+  X,
+} from "lucide-react";
 import useChatStore from "../store/useChatStore";
 
 const ChatWindow = () => {
@@ -25,6 +34,7 @@ const ChatWindow = () => {
   } = useChatStore();
 
   const [input, setInput] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -37,7 +47,7 @@ const ChatWindow = () => {
 
   useEffect(() => {
     fetchHistory();
-  }, [fetchHistory]);
+  }, []);
 
   // Add welcome message if no messages exist
   const displayMessages =
@@ -87,9 +97,21 @@ const ChatWindow = () => {
     <Card className="h-full flex flex-col bg-background border-primary/20 overflow-hidden shadow-xs">
       {/* Chat Header - Fixed */}
       <div className="bg-primary/5 border-b border-primary/20 p-4 backdrop-blur-sm flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <Bot className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">LexiPlan AI</h2>
+        <div className="flex items-center gap-2 justify-between">
+          <div className="flex items-center gap-2">
+            <Bot className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">
+              LexiPlan AI
+            </h2>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="lg:hidden w-8 h-8 p-0"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
         </div>
         {activeConversationId && (
           <p className="text-xs text-muted-foreground mt-1">
@@ -99,12 +121,39 @@ const ChatWindow = () => {
       </div>
 
       {/* Main Content Area - Fixed Height */}
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 relative">
+        {/* Mobile Overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Chat History Sidebar - Fixed */}
-        <div className="w-64 bg-background border-r border-primary/20 flex flex-col flex-shrink-0">
+        <div
+          className={`${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } lg:translate-x-0 fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto w-64 bg-background border-r border-primary/20 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out`}
+        >
           <div className="p-3 border-b border-primary/20 flex-shrink-0">
+            {/* Close button for mobile */}
+            <div className="lg:hidden flex justify-end mb-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(false)}
+                className="w-8 h-8 p-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
             <Button
-              onClick={handleNewChat}
+              onClick={() => {
+                handleNewChat();
+                setSidebarOpen(false);
+              }}
               className="w-full bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 hover:text-primary font-medium flex items-center justify-center gap-2 transition-all duration-200 text-sm py-2"
             >
               <Plus className="w-3 h-3" />
@@ -151,14 +200,17 @@ const ChatWindow = () => {
                 {conversations.map((conv) => (
                   <div
                     key={conv._id}
-                    onClick={() => loadConversation(conv._id)}
-                    className={`group relative p-2 rounded-md cursor-pointer transition-all duration-200 border overflow-hidden ${
+                    onClick={() => {
+                      loadConversation(conv._id);
+                      setSidebarOpen(false);
+                    }}
+                    className={`group relative p-2 rounded-md cursor-pointer transition-all duration-200 border ${
                       activeConversationId === conv._id
                         ? "bg-primary/10 border-primary/20 shadow-sm"
                         : "bg-transparent border-transparent hover:bg-muted/30 hover:border-border/50"
                     }`}
                   >
-                    <div className="flex items-start gap-2 pr-6">
+                    <div className="flex items-start gap-2">
                       <MessageSquare
                         className={`w-3 h-3 mt-0.5 flex-shrink-0 ${
                           activeConversationId === conv._id
@@ -166,13 +218,14 @@ const ChatWindow = () => {
                             : "text-muted-foreground/70"
                         }`}
                       />
-                      <div className="flex-1 min-w-0 overflow-hidden">
+                      <div className="flex-1 min-w-0 pr-6">
                         <p
                           className={`text-xs font-medium truncate leading-tight ${
                             activeConversationId === conv._id
                               ? "text-primary"
                               : "text-foreground/80"
                           }`}
+                          title={conv.title || "Untitled"}
                         >
                           {conv.title || "Untitled"}
                         </p>
@@ -192,13 +245,13 @@ const ChatWindow = () => {
                           })}
                         </p>
                       </div>
+                      <button
+                        onClick={(e) => handleDeleteConversation(e, conv._id)}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 hover:text-destructive transition-all duration-200 z-10"
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                      </button>
                     </div>
-                    <button
-                      onClick={(e) => handleDeleteConversation(e, conv._id)}
-                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 hover:text-destructive transition-all duration-200"
-                    >
-                      <Trash2 className="w-2.5 h-2.5" />
-                    </button>
                   </div>
                 ))}
               </div>
