@@ -47,12 +47,14 @@ const LoginForm = ({ onSwitchToRegister }) => {
 
   return (
     <div className="flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md bg-[hsl(var(--nav-background))]">
-        <CardHeader>
-          <CardTitle>Welcome back</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
+      <Card className="w-full max-w-md bg-[hsl(var(--nav-background))] shadow-lg">
+        <CardHeader className="space-y-1 pb-4">
+          <CardTitle className="text-2xl sm:text-3xl">Welcome back</CardTitle>
+          <CardDescription className="text-sm sm:text-base">
+            Sign in to your account to continue
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -81,20 +83,24 @@ const LoginForm = ({ onSwitchToRegister }) => {
             </div>
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              <div className="text-xs sm:text-sm text-destructive bg-destructive/10 p-3 rounded-md break-words">
                 {error}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full h-10 sm:h-11"
+              disabled={isLoading}
+            >
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
 
-            <div className="text-center text-sm mt-6">
+            <div className="text-center text-xs sm:text-sm mt-6">
               Don't have an account?{" "}
               <span
                 onClick={onSwitchToRegister}
-                className="text-primary hover:underline cursor-pointer"
+                className="text-primary hover:underline cursor-pointer font-medium"
               >
                 Sign up
               </span>

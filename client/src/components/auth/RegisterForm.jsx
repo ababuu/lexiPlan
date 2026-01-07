@@ -48,14 +48,16 @@ const RegisterForm = ({ onSwitchToLogin }) => {
 
   return (
     <div className="flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md bg-[hsl(var(--nav-background))]">
-        <CardHeader>
-          <CardTitle>Create your account</CardTitle>
-          <CardDescription>
+      <Card className="w-full max-w-md bg-[hsl(var(--nav-background))] shadow-lg">
+        <CardHeader className="space-y-1 pb-4">
+          <CardTitle className="text-2xl sm:text-3xl">
+            Create your account
+          </CardTitle>
+          <CardDescription className="text-sm sm:text-base">
             Set up your organization and admin account
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="orgName">Organization Name</Label>
@@ -98,20 +100,24 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             </div>
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              <div className="text-xs sm:text-sm text-destructive bg-destructive/10 p-3 rounded-md break-words">
                 {error}
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full h-10 sm:h-11"
+              disabled={isLoading}
+            >
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
 
-            <div className="text-center text-sm mt-6">
+            <div className="text-center text-xs sm:text-sm mt-6">
               Already have an account{" "}
               <span
                 onClick={onSwitchToLogin}
-                className="text-primary hover:underline cursor-pointer"
+                className="text-primary hover:underline cursor-pointer font-medium"
               >
                 Sign in
               </span>
