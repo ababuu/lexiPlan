@@ -21,13 +21,16 @@ const corsOptions = {
   origin: isDevelopment ? true : process.env.FRONTEND_URL,
   credentials: true,
   optionsSuccessStatus: 200, // Legacy browser support (IE11/SmartTVs)
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
 };
 
 // Apply CORS to every single request
 app.use(cors(corsOptions));
 
 // Explicitly handle Preflight (OPTIONS) for all routes
-app.options("/*splat", cors(corsOptions));
+// Use '/*' so Express v5 path-to-regexp treats it as a valid wildcard path
+app.options("/{*any}", cors(corsOptions));
 
 // 2. STANDARD PARSERS
 app.use(express.json());
