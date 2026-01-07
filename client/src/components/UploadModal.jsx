@@ -195,28 +195,37 @@ const UploadModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-background rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b">
           <div>
-            <h2 className="text-xl font-semibold">Upload Documents</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-lg sm:text-xl font-semibold">
+              Upload Documents
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               Upload PDF documents to add them to your knowledge base
             </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleClose}>
-            <X className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleClose}
+            className="h-8 w-8 sm:h-10 sm:w-10"
+          >
+            <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[calc(90vh-120px)] overflow-auto">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[calc(95vh-180px)] sm:max-h-[calc(90vh-120px)] overflow-auto">
           {/* Project Selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Select Project</Label>
+          <div className="space-y-2 sm:space-y-3">
+            <Label className="text-xs sm:text-sm font-medium">
+              Select Project
+            </Label>
             {loadingProjects ? (
-              <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Loading projects...</span>
+              <div className="flex items-center space-x-2 p-2 sm:p-3 border rounded-lg">
+                <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                <span className="text-xs sm:text-sm">Loading projects...</span>
               </div>
             ) : (
               <Select
@@ -224,7 +233,7 @@ const UploadModal = ({
                 onValueChange={setSelectedProject}
                 disabled={!!preselectedProjectId}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-xs sm:text-sm">
                   <SelectValue placeholder="Choose a project..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -237,7 +246,7 @@ const UploadModal = ({
               </Select>
             )}
             {preselectedProjectId && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[10px] sm:text-xs text-muted-foreground">
                 Documents will be uploaded to the selected project
               </p>
             )}
@@ -245,7 +254,7 @@ const UploadModal = ({
 
           {/* Upload Zone */}
           <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            className={`border-2 border-dashed rounded-lg p-4 sm:p-8 text-center transition-colors ${
               dragActive
                 ? "border-primary bg-primary/5"
                 : "border-muted-foreground/25 hover:border-muted-foreground/50"
@@ -255,12 +264,12 @@ const UploadModal = ({
             onDragOver={handleDrag}
             onDrop={handleDrop}
           >
-            <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <div className="space-y-2">
-              <p className="font-medium">
+            <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mb-2 sm:mb-4" />
+            <div className="space-y-1 sm:space-y-2">
+              <p className="text-sm sm:text-base font-medium">
                 Drop PDF files here or click to browse
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Supports PDF files up to 10MB each
               </p>
             </div>
@@ -268,7 +277,8 @@ const UploadModal = ({
             <Button
               type="button"
               variant="outline"
-              className="mt-4"
+              size="sm"
+              className="mt-3 sm:mt-4 text-xs sm:text-sm"
               onClick={() => fileInputRef.current?.click()}
             >
               Browse Files
@@ -286,9 +296,9 @@ const UploadModal = ({
 
           {/* File List */}
           {files.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">
+                <Label className="text-xs sm:text-sm font-medium">
                   Files ({files.length})
                 </Label>
                 <Button
@@ -296,24 +306,25 @@ const UploadModal = ({
                   size="sm"
                   onClick={() => setFiles([])}
                   disabled={uploading}
+                  className="text-xs h-7 sm:h-8"
                 >
                   Clear All
                 </Button>
               </div>
 
-              <div className="space-y-2 max-h-48 overflow-auto">
+              <div className="space-y-2 max-h-36 sm:max-h-48 overflow-auto">
                 {files.map((file) => (
                   <div
                     key={file.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                    className="flex items-center justify-between p-2 sm:p-3 border rounded-lg gap-2"
                   >
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                       {getStatusIcon(file.status)}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                        <p className="text-xs sm:text-sm font-medium truncate">
                           {file.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">
                           {formatFileSize(file.size)}
                           {file.error && (
                             <span className="text-red-500 ml-2">
@@ -329,8 +340,9 @@ const UploadModal = ({
                         size="sm"
                         onClick={() => removeFile(file.id)}
                         disabled={uploading}
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 flex-shrink-0"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     )}
                   </div>
@@ -341,31 +353,37 @@ const UploadModal = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t bg-muted/50">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-4 sm:p-6 border-t bg-muted/50 gap-3">
+          <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
             {files.length > 0 && `${files.length} file(s) selected`}
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <Button
               variant="outline"
               onClick={handleClose}
               disabled={uploading}
+              className="flex-1 sm:flex-none text-xs sm:text-sm h-9"
             >
               Cancel
             </Button>
             <Button
               onClick={handleUploadAll}
               disabled={uploading || files.length === 0 || !selectedProject}
+              className="flex-1 sm:flex-none text-xs sm:text-sm h-9"
             >
               {uploading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Uploading...
+                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 animate-spin" />
+                  <span className="hidden xs:inline">Uploading...</span>
+                  <span className="xs:hidden">Upload</span>
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload {files.length} File(s)
+                  <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
+                  <span className="hidden xs:inline">
+                    Upload {files.length} File(s)
+                  </span>
+                  <span className="xs:hidden">Upload</span>
                 </>
               )}
             </Button>
