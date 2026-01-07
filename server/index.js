@@ -15,8 +15,19 @@ import organizationRoutes from "./routes/organizationRoutes.js";
 const app = express();
 
 // 1. Global Middleware
-// Allow credentials for cookie-based auth. In production, set explicit origin.
-app.use(cors({ origin: true, credentials: true }));
+// Identify Environment
+const isDevelopment = process.env.NODE_ENV === "development";
+
+// CORS Configuration
+const corsOptions = {
+  // If dev, reflect the origin. If prod, only allow your deployment URL.
+  origin: isDevelopment ? true : process.env.FRONTEND_URL,
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+// Handle preflight requests for all routes
+// app.options("*", cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json()); // Essential for parsing AI/PDF JSON data
 
