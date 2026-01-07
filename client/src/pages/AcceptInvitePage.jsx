@@ -96,12 +96,14 @@ const AcceptInvitePage = () => {
 
   if (!token && !error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md shadow-lg">
           <CardContent className="pt-6">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading invite...</p>
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Loading invite...
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -110,30 +112,34 @@ const AcceptInvitePage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md bg-[hsl(var(--nav-background))]">
-        <CardHeader>
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md bg-[hsl(var(--nav-background))] shadow-lg">
+        <CardHeader className="space-y-2 pb-4">
           <div className="flex items-center gap-2">
-            <CheckCircle className="h-6 w-6 text-primary" />
-            <CardTitle>Accept Your Invitation</CardTitle>
+            <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+            <CardTitle className="text-xl sm:text-2xl">
+              Accept Your Invitation
+            </CardTitle>
           </div>
-          <CardDescription>
+          <CardDescription className="text-sm sm:text-base">
             Set your password to activate your account and get started
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           {error ? (
             <div className="space-y-4">
-              <div className="flex items-start gap-3 text-destructive bg-destructive/10 p-4 rounded-md">
-                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 sm:gap-3 text-destructive bg-destructive/10 p-3 sm:p-4 rounded-md">
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium">Invalid Invite</p>
-                  <p className="text-sm mt-1">{error}</p>
+                  <p className="font-medium text-sm sm:text-base">
+                    Invalid Invite
+                  </p>
+                  <p className="text-xs sm:text-sm mt-1 break-words">{error}</p>
                 </div>
               </div>
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full h-10 sm:h-11"
                 onClick={() => navigate("/login")}
               >
                 Go to Login
@@ -169,18 +175,22 @@ const AcceptInvitePage = () => {
               </div>
 
               {passwordError && (
-                <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                <div className="text-xs sm:text-sm text-destructive bg-destructive/10 p-3 rounded-md break-words">
                   {passwordError}
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full h-10 sm:h-11"
+                disabled={isLoading}
+              >
                 {isLoading
                   ? "Setting up your account..."
                   : "Accept Invite & Login"}
               </Button>
 
-              <p className="text-xs text-muted-foreground text-center mt-4">
+              <p className="text-[10px] sm:text-xs text-muted-foreground text-center mt-4 leading-relaxed">
                 By accepting this invitation, you agree to join the organization
                 and will have immediate access to your assigned resources.
               </p>

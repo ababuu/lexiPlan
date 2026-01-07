@@ -20,9 +20,9 @@ const LoginPage = () => {
   }, [isAuthenticated, navigate, location]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full mx-auto">
-        <div className="py-4 px-10">
+        <div className="py-4 sm:py-6 px-4 sm:px-8 md:px-10">
           {isLogin ? (
             <LoginForm onSwitchToRegister={() => setIsLogin(false)} />
           ) : (
