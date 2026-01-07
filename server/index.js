@@ -14,79 +14,89 @@ import organizationRoutes from "./routes/organizationRoutes.js";
 
 const app = express();
 
-// 1. Global Middleware
-// Identify Environment
+// 1. GLOBAL CORS (MUST BE FIRST)
 const isDevelopment = process.env.NODE_ENV === "development";
 
-// CORS Configuration
 const corsOptions = {
-  // If dev, reflect the origin. If prod, only allow your deployment URL.
   origin: isDevelopment ? true : process.env.FRONTEND_URL,
   credentials: true,
+  optionsSuccessStatus: 200, // Legacy browser support (IE11/SmartTVs)
 };
 
+// Apply CORS to every single request
 app.use(cors(corsOptions));
-// Handle preflight requests for all routes
-// app.options("*", cors(corsOptions));
-app.use(cookieParser());
-app.use(express.json()); // Essential for parsing AI/PDF JSON data
 
-// CSRF protection using double-submit cookie pattern.
-// csurf will store the secret in a cookie and expose req.csrfToken().
+// Explicitly handle Preflight (OPTIONS) for all routes
+app.options("*", cors(corsOptions));
+
+// 2. STANDARD PARSERS
+app.use(express.json());
+app.use(cookieParser());
+
+// 3. CSRF PROTECTION LOGIC
 const csrfProtection = csurf({
   cookie: {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Crucial for cross-site
   },
 });
 
-// Apply CSRF protection but skip it for auth endpoints that need to be
-// callable before a CSRF token exists (register/login/logout).
+// CSRF Wrapper: Skip for OPTIONS and specific paths
 app.use((req, res, next) => {
+  // 1. Always skip CSRF for OPTIONS requests (Preflight)
+  if (req.method === "OPTIONS") return next();
+
+  // 2. Skip for these specific paths
   const csrfExemptPaths = [
     "/api/auth/register",
     "/api/auth/login",
-    "/api/auth/me",
     "/api/auth/logout",
-    "/api/auth/accept-invite",
+    "/api/auth/me", // Added for initial auth check
+    "/api/csrf-token",
   ];
 
-  if (csrfExemptPaths.includes(req.path)) return next();
+  if (csrfExemptPaths.some((path) => req.path.startsWith(path))) {
+    return next();
+  }
+
   return csrfProtection(req, res, next);
 });
 
-// Endpoint to fetch CSRF token for single-page apps. Client should call this
-// and then include the token in `X-CSRF-Token` header for state-changing requests.
+// CSRF Token Endpoint
 app.get("/api/csrf-token", (req, res) => {
-  try {
-    res.json({ csrfToken: req.csrfToken() });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to generate CSRF token" });
-  }
+  res.json({ csrfToken: req.csrfToken() });
 });
 
-// 2. Database Connection with Retry Logic (Critical for Docker)
+// 4. DATABASE CONNECTION
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`❌ Error: ${error.message}`);
-    setTimeout(connectDB, 5000); // Retry after 5s if Mongo isn't up yet
+    setTimeout(connectDB, 5000);
   }
 };
 connectDB();
 
+// 5. ROUTES
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", protect, projectRoutes);
 app.use("/api/documents", protect, documentRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/analytics", analyticsRoutes);
-app.use("/api/org", organizationRoutes);
+app.use("/api/chat", protect, chatRoutes); // Added protect if chat needs auth
+app.use("/api/analytics", protect, analyticsRoutes);
+app.use("/api/org", protect, organizationRoutes);
 
-// 4. Global Error Handler (The Senior Touch)
+// 6. GLOBAL ERROR HANDLER
 app.use((err, req, res, next) => {
+  // Handle CSRF errors specifically
+  if (err.code === "EBADCSRFTOKEN") {
+    return res
+      .status(403)
+      .json({ message: "Form tampered with / Invalid CSRF token" });
+  }
+
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode).json({
     message: err.message,
