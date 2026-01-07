@@ -117,24 +117,24 @@ const ProjectsView = () => {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header Section Skeleton */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
           <div className="space-y-2">
-            <div className="h-9 w-32 bg-muted animate-pulse rounded" />
-            <div className="h-5 w-80 bg-muted animate-pulse rounded" />
+            <div className="h-7 sm:h-9 w-32 bg-muted animate-pulse rounded" />
+            <div className="h-4 sm:h-5 w-64 sm:w-80 bg-muted animate-pulse rounded" />
           </div>
-          <div className="h-10 w-32 bg-muted animate-pulse rounded" />
+          <div className="h-10 w-full sm:w-32 bg-muted animate-pulse rounded" />
         </div>
 
         {/* Projects Grid Skeleton */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="h-7 w-48 bg-muted animate-pulse rounded" />
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            <div className="h-6 sm:h-7 w-48 bg-muted animate-pulse rounded" />
             <div className="h-4 w-40 bg-muted animate-pulse rounded" />
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }, (_, i) => (
               <CardSkeleton
                 key={i}
@@ -150,24 +150,24 @@ const ProjectsView = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header Section */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Projects
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Organize your documents and AI interactions by project
           </p>
         </div>
         <NotViewer>
           <Button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
-            New Project
+            <span>New Project</span>
           </Button>
         </NotViewer>
       </div>
@@ -175,13 +175,15 @@ const ProjectsView = () => {
       {/* Create Project Form */}
       {showCreateForm && (
         <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl">Create New Project</CardTitle>
-            <CardDescription>
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl">
+              Create New Project
+            </CardTitle>
+            <CardDescription className="text-sm">
               Set up a new project to organize your documents and conversations
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <form onSubmit={handleCreateProject} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-sm font-medium">
@@ -198,6 +200,7 @@ const ProjectsView = () => {
                   }
                   placeholder="Enter project title..."
                   required
+                  className="text-sm sm:text-base"
                 />
               </div>
 
@@ -215,15 +218,19 @@ const ProjectsView = () => {
                     }))
                   }
                   placeholder="Brief description of your project..."
+                  className="text-sm sm:text-base"
                 />
               </div>
 
-              <div className="flex space-x-4 pt-2">
-                <Button type="submit">Create Project</Button>
+              <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4 sm:gap-0 pt-2">
+                <Button type="submit" className="w-full sm:w-auto">
+                  Create Project
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowCreateForm(false)}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
@@ -235,62 +242,66 @@ const ProjectsView = () => {
 
       {/* Projects Grid */}
       {projects.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+            <h2 className="text-xl sm:text-2xl font-semibold">
               Your Projects ({projects.length})
             </h2>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs sm:text-sm text-muted-foreground">
               Click on a project to view details
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
               <Card
                 key={project._id}
                 className="group relative overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]"
                 onClick={() => handleProjectClick(project._id)}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3 min-w-0 flex-1">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <FolderOpen className="w-5 h-5 text-primary" />
+                <CardHeader className="pb-3 px-4 sm:px-6">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                      <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                        <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                       </div>
-                      <CardTitle className="text-lg font-semibold truncate">
+                      <CardTitle className="text-base sm:text-lg font-semibold truncate">
                         {project.title}
                       </CardTitle>
                     </div>
                     <NotViewer>
                       <div
-                        className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="flex space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Edit className="w-4 h-4" />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 sm:h-8 sm:w-8"
+                        >
+                          <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={(e) => handleDeleteClick(e, project)}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </Button>
                       </div>
                     </NotViewer>
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+                <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem]">
                     {project.description || "No description provided"}
                   </p>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      className={`px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium w-fit ${
                         project.status === "active"
                           ? "bg-primary/20 text-primary"
                           : project.status === "completed"
@@ -301,7 +312,7 @@ const ProjectsView = () => {
                       {project.status.charAt(0).toUpperCase() +
                         project.status.slice(1)}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">
                       {formatDate(project.createdAt)}
                     </span>
                   </div>
@@ -315,19 +326,21 @@ const ProjectsView = () => {
       {/* Empty State */}
       {projects.length === 0 && !showCreateForm && (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="p-4 bg-primary/10 rounded-full mb-6">
-              <FolderOpen className="w-12 h-12 text-primary" />
+          <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 text-center px-4 sm:px-6">
+            <div className="p-3 sm:p-4 bg-primary/10 rounded-full mb-4 sm:mb-6">
+              <FolderOpen className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-3">No projects yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-md">
+            <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">
+              No projects yet
+            </h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-md">
               Create your first project to start organizing your documents and
               AI conversations. Projects help you keep everything organized and
               easily accessible.
             </p>
             <Button
               onClick={() => setShowCreateForm(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               Create Your First Project
