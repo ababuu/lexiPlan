@@ -312,14 +312,14 @@ const TeamSettingsPage = () => {
   };
 
   return (
-    <div className="p-6 h-full flex flex-col">
+    <div className="p-3 sm:p-6 h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 flex-shrink-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 flex-shrink-0 gap-3">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             Team Settings
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
             Manage your organization's team members and their permissions
           </p>
         </div>
@@ -327,7 +327,7 @@ const TeamSettingsPage = () => {
         <AdminOnly>
           <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 w-full sm:w-auto">
                 <UserPlus className="h-4 w-4" />
                 Add Member
               </Button>
@@ -449,7 +449,7 @@ const TeamSettingsPage = () => {
         onValueChange={setActiveTab}
         className="flex-1 flex flex-col"
       >
-        <TabsList className="grid w-full max-w-md grid-cols-2 flex-shrink-0 mb-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2 flex-shrink-0 mb-4 sm:mb-6">
           <TabsTrigger value="members" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Team Members
@@ -474,105 +474,123 @@ const TeamSettingsPage = () => {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0 sm:p-6">
               {loading ? (
-                <TableSkeleton rows={5} columns={5} />
+                <div className="p-6">
+                  <TableSkeleton rows={5} columns={5} />
+                </div>
               ) : teamMembers.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Joined</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {teamMembers.map((member) => (
-                      <TableRow key={member._id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-sm font-semibold text-primary">
-                                {member.email.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            {member.email}
-                            {(member._id === user?._id ||
-                              member._id === user?.id) && (
-                              <Badge
-                                variant="outline"
-                                className="text-xs bg-primary hover:normal-case text-white"
-                              >
-                                You
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-max">
-                            {getRoleBadge(member.role)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-max">
-                            {getStatusBadge(member.status || "active")}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(member.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <AdminOnly>
-                            <div className="flex items-center gap-2 justify-end">
-                              <Select
-                                value={member.role}
-                                onValueChange={(newRole) =>
-                                  handleRoleUpdate(member._id, newRole)
-                                }
-                                disabled={
-                                  member._id === user?._id ||
-                                  member._id === user?.id
-                                }
-                              >
-                                <SelectTrigger className="w-28 h-8">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                  <SelectItem value="member">Member</SelectItem>
-                                  <SelectItem value="viewer">Viewer</SelectItem>
-                                </SelectContent>
-                              </Select>
-
-                              {member._id !== user?._id &&
-                                member._id !== user?.id && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleRemoveMember(
-                                        member._id,
-                                        member.email
-                                      )
-                                    }
-                                    className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                )}
-                            </div>
-                          </AdminOnly>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead className="hidden sm:table-cell">
+                          Status
+                        </TableHead>
+                        <TableHead className="hidden md:table-cell">
+                          Joined
+                        </TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {teamMembers.map((member) => (
+                        <TableRow key={member._id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <span className="text-xs sm:text-sm font-semibold text-primary">
+                                  {member.email.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className="min-w-0">
+                                <div className="text-xs sm:text-sm truncate max-w-[150px] sm:max-w-none">
+                                  {member.email}
+                                </div>
+                                {(member._id === user?._id ||
+                                  member._id === user?.id) && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] sm:text-xs bg-primary hover:normal-case text-white mt-1"
+                                  >
+                                    You
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="w-max">
+                              {getRoleBadge(member.role)}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <div className="w-max">
+                              {getStatusBadge(member.status || "active")}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <span className="text-xs sm:text-sm">
+                              {new Date(member.createdAt).toLocaleDateString()}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <AdminOnly>
+                              <div className="flex items-center gap-1 sm:gap-2 justify-end">
+                                <Select
+                                  value={member.role}
+                                  onValueChange={(newRole) =>
+                                    handleRoleUpdate(member._id, newRole)
+                                  }
+                                  disabled={
+                                    member._id === user?._id ||
+                                    member._id === user?.id
+                                  }
+                                >
+                                  <SelectTrigger className="w-20 sm:w-28 h-7 sm:h-8 text-xs sm:text-sm">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                    <SelectItem value="member">
+                                      Member
+                                    </SelectItem>
+                                    <SelectItem value="viewer">
+                                      Viewer
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+
+                                {member._id !== user?._id &&
+                                  member._id !== user?.id && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleRemoveMember(
+                                          member._id,
+                                          member.email
+                                        )
+                                      }
+                                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-destructive hover:text-destructive"
+                                    >
+                                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                                    </Button>
+                                  )}
+                              </div>
+                            </AdminOnly>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No team members found</p>
+                <div className="text-center py-6 sm:py-8 text-muted-foreground px-4">
+                  <Users className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                  <p className="text-sm sm:text-base">No team members found</p>
                 </div>
               )}
             </CardContent>
@@ -592,33 +610,36 @@ const TeamSettingsPage = () => {
                   </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="h-96 overflow-hidden px-6">
+              <CardContent className="h-96 overflow-hidden px-3 sm:px-6">
                 {logsLoading ? (
-                  <div className="space-y-4 flex-1">
+                  <div className="space-y-3 sm:space-y-4 flex-1">
                     {[...Array(5)].map((_, i) => (
-                      <div key={i} className="flex items-center space-x-4">
-                        <Skeleton className="h-10 w-10 rounded-full" />
+                      <div
+                        key={i}
+                        className="flex items-center space-x-3 sm:space-x-4"
+                      >
+                        <Skeleton className="h-8 w-8 sm:h-10 sm:w-10 rounded-full" />
                         <div className="space-y-2 flex-1">
-                          <Skeleton className="h-4 w-3/4" />
-                          <Skeleton className="h-3 w-1/2" />
+                          <Skeleton className="h-3 sm:h-4 w-3/4" />
+                          <Skeleton className="h-2.5 sm:h-3 w-1/2" />
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : auditLogs.length > 0 ? (
                   <ScrollArea className="h-full">
-                    <div className="space-y-3 pr-4">
+                    <div className="space-y-2 sm:space-y-3 pr-2 sm:pr-4">
                       {auditLogs.map((log) => (
                         <div
                           key={log._id}
-                          className="flex items-start space-x-3 p-4 rounded-lg border hover:bg-muted/30 transition-colors"
+                          className="flex items-start space-x-2 sm:space-x-3 p-3 sm:p-4 rounded-lg border hover:bg-muted/30 transition-colors"
                         >
-                          <div className="h-8 w-8 rounded-full bg-mantis/10 flex items-center justify-center flex-shrink-0">
-                            <Activity className="h-4 w-4 text-mantis" />
+                          <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-mantis/10 flex items-center justify-center flex-shrink-0">
+                            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-mantis" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <div className="text-sm">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                              <div className="text-xs sm:text-sm">
                                 <span className="font-semibold text-mantis capitalize">
                                   {log.performer?.email?.split("@")[0] ||
                                     "Unknown"}
@@ -628,8 +649,8 @@ const TeamSettingsPage = () => {
                                     log.action.replace(/_/g, " ").toLowerCase()}
                                 </span>
                               </div>
-                              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
+                              <div className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 flex-shrink-0">
+                                <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                 {formatActivityDate(
                                   log.timestamp || log.createdAt
                                 )}
@@ -637,7 +658,7 @@ const TeamSettingsPage = () => {
                             </div>
                             {log.target && (
                               <div
-                                className="text-sm text-muted-foreground mt-1 truncate"
+                                className="text-xs sm:text-sm text-muted-foreground mt-1 truncate"
                                 title={log.target}
                               >
                                 <span className="font-medium">Target:</span>{" "}
@@ -650,10 +671,12 @@ const TeamSettingsPage = () => {
                     </div>
                   </ScrollArea>
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground">
-                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium">No recent activity</p>
-                    <p className="text-sm mt-2 max-w-md">
+                  <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground px-4">
+                    <Activity className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                    <p className="text-base sm:text-lg font-medium">
+                      No recent activity
+                    </p>
+                    <p className="text-xs sm:text-sm mt-2 max-w-md">
                       Team actions like document uploads, project changes, and
                       user management will appear here
                     </p>
