@@ -27,7 +27,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Explicitly handle Preflight (OPTIONS) for all routes
-app.options("*", cors(corsOptions));
+app.options("/*splat", cors(corsOptions));
 
 // 2. STANDARD PARSERS
 app.use(express.json());
