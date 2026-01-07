@@ -1,8 +1,12 @@
 import axios from "axios";
 
+// Get API base URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+const SERVER_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
+
 // Create Axios instance with credentials support for HttpOnly cookies
 const api = axios.create({
-  baseURL: "/api", // Use relative path - Vite proxy will forward to localhost:5000/api
+  baseURL: API_BASE_URL.startsWith("http") ? API_BASE_URL : "/api", // Use full URL in production or relative path in development
   withCredentials: true, // Essential for HttpOnly cookie authentication
   headers: {
     "Content-Type": "application/json",
@@ -24,12 +28,13 @@ api.interceptors.request.use(async (config) => {
 
   try {
     // Fetch CSRF token if needed
-    const csrfResponse = await axios.get(
-      "http://localhost:5000/api/csrf-token",
-      {
-        withCredentials: true,
-      }
-    );
+    const csrfUrl = API_BASE_URL.startsWith("http")
+      ? `${API_BASE_URL}/csrf-token`
+      : `${SERVER_BASE_URL}/api/csrf-token`;
+
+    const csrfResponse = await axios.get(csrfUrl, {
+      withCredentials: true,
+    });
 
     config.headers["X-CSRF-Token"] = csrfResponse.data.csrfToken;
   } catch (error) {
@@ -91,12 +96,20 @@ export const documentsApi = {
 export const chatApi = {
   sendMessage: async (message, conversationId, onChunk, projectId = null) => {
     // First get CSRF token
-    const csrfResponse = await fetch("/api/csrf-token", {
+    const csrfUrl = API_BASE_URL.startsWith("http")
+      ? `${API_BASE_URL}/csrf-token`
+      : "/api/csrf-token";
+
+    const csrfResponse = await fetch(csrfUrl, {
       credentials: "include",
     });
     const { csrfToken } = await csrfResponse.json();
 
-    const response = await fetch("/api/chat", {
+    const chatUrl = API_BASE_URL.startsWith("http")
+      ? `${API_BASE_URL}/chat`
+      : "/api/chat";
+
+    const response = await fetch(chatUrl, {
       method: "POST",
       credentials: "include",
       headers: {
