@@ -41,8 +41,9 @@ export const chatWithDocuments = async (req, res) => {
     // 3. Initialize Gemini LLM (streaming)
     const model = new ChatGoogleGenerativeAI({
       model: "gemini-2.5-flash",
-      temperature: 0,
+      temperature: 0.2,
       streaming: true,
+      maxOutputTokens: 2048,
     });
 
     // 4. Set headers for Server-Sent Events (SSE)
@@ -76,24 +77,28 @@ export const chatWithDocuments = async (req, res) => {
     }
 
     // 6. System prompt with retrieved context
-    const systemPrompt = projectId
-      ? `
-        You are a helpful assistant for a specific project within an organization.
-        Use the provided context from project documents to answer the user's question.
-        Focus on information relevant to this particular project.
-        If the answer is not in the context, say you don't know.
+    const baseInstructions = `
+      You are the lexiPlan Intelligence Assistant. 
+      Your goal is to provide accurate, concise, and professional answers based ONLY on the provided documents.
 
-        Project Context:
-        ${context}
-        `
-      : `
-        You are a helpful assistant for an organization.
-        Use the provided context to answer the user's question.
-        If the answer is not in the context, say you don't know.
+      RULES:
+      1. Use Markdown for clarity (headers, bolding, bullet points).
+      2. If the context doesn't contain the answer, say: "I'm sorry, I couldn't find specific information about that in the project documents. Could you try rephrasing or uploading more relevant files?"
+      3. Avoid preamble like "Based on the context provided..." just give the answer directly.
+      4. If the user asks for a summary, use a bulleted list.
+      `;
 
-        Context:
-        ${context}
-        `;
+    const systemPrompt = `
+      ${baseInstructions}
+
+      ${projectId ? "PROJECT-SPECIFIC CONTEXT:" : "ORGANIZATION CONTEXT:"}
+      -------------------------
+      ${
+        context ||
+        "No relevant document context found. Please answer based on general knowledge but warn the user that no specific documents were found."
+      }
+      -------------------------
+      `;
 
     // 6. Build message history for Gemini using LangChain message classes
     const messages = [
