@@ -274,13 +274,13 @@ const ProjectsView = () => {
                         className="flex space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Button
+                        {/* <Button
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 sm:h-8 sm:w-8"
                         >
                           <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </Button>
+                        </Button> */}
                         <Button
                           variant="ghost"
                           size="icon"

@@ -384,7 +384,7 @@ const ProjectDetailPage = () => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleDeleteClick(document)}
-                                  className="cursor-pointer text-destructive focus:text-destructive"
+                                  className="cursor-pointer text-destructive focus:text-destructive hover:bg-destructive/10 focus:bg-destructive/10"
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
                                   Delete
