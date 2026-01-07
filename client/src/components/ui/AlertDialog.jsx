@@ -6,8 +6,8 @@ export const AlertDialog = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md mx-4">{children}</div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-2 sm:p-4">
+      <div className="w-full max-w-md mx-2 sm:mx-4">{children}</div>
     </div>
   );
 };
@@ -22,7 +22,7 @@ export const AlertDialogHeader = ({ children }) => {
 
 export const AlertDialogTitle = ({ children, className = "" }) => {
   return (
-    <CardTitle className={`text-lg font-semibold ${className}`}>
+    <CardTitle className={`text-base sm:text-lg font-semibold ${className}`}>
       {children}
     </CardTitle>
   );
@@ -30,7 +30,9 @@ export const AlertDialogTitle = ({ children, className = "" }) => {
 
 export const AlertDialogDescription = ({ children, className = "" }) => {
   return (
-    <p className={`text-sm text-muted-foreground mt-2 ${className}`}>
+    <p
+      className={`text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2 ${className}`}
+    >
       {children}
     </p>
   );
@@ -38,7 +40,9 @@ export const AlertDialogDescription = ({ children, className = "" }) => {
 
 export const AlertDialogFooter = ({ children, className = "" }) => {
   return (
-    <CardContent className={`flex justify-end gap-2 pt-4 ${className}`}>
+    <CardContent
+      className={`flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 sm:pt-4 ${className}`}
+    >
       {children}
     </CardContent>
   );
