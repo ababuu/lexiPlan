@@ -196,13 +196,13 @@ const AnalyticsView = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-start">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Analytics Dashboard
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Monitor your LexiPlan AI assistant usage and document insights
           </p>
           {lastUpdated && (
@@ -216,7 +216,7 @@ const AnalyticsView = () => {
           size="sm"
           onClick={handleRefresh}
           disabled={refreshing}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 w-full sm:w-auto"
         >
           <RefreshCw
             className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
@@ -226,7 +226,7 @@ const AnalyticsView = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -234,17 +234,21 @@ const AnalyticsView = () => {
               key={stat.title}
               className="hover:shadow-md transition-shadow duration-200"
             >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium">
                   {stat.title}
                 </CardTitle>
-                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
+                <div className={`p-1.5 sm:p-2 rounded-lg ${stat.bgColor}`}>
+                  <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${stat.color}`} />
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.change}</p>
+              <CardContent className="p-3 sm:p-6 pt-0">
+                <div className="text-xl sm:text-2xl font-bold">
+                  {stat.value}
+                </div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                  {stat.change}
+                </p>
               </CardContent>
             </Card>
           );
@@ -252,19 +256,19 @@ const AnalyticsView = () => {
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Documents per Project Chart */}
         <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Documents per Project
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               Distribution of documents across projects
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0">
             <ResponsiveContainer
               width="100%"
               height={250}
@@ -277,8 +281,9 @@ const AnalyticsView = () => {
                   angle={-45}
                   textAnchor="end"
                   height={80}
+                  style={{ fontSize: "11px" }}
                 />
-                <YAxis />
+                <YAxis style={{ fontSize: "11px" }} />
                 <Tooltip />
                 <Bar dataKey="documentCount" fill="hsl(var(--primary))" />
               </BarChart>
@@ -288,16 +293,16 @@ const AnalyticsView = () => {
 
         {/* Weekly Activity Chart */}
         <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-secondary" />
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
               Weekly Message Activity
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs sm:text-sm">
               Messages sent over the last 7 days
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0">
             <ResponsiveContainer
               width="100%"
               height={250}
@@ -305,8 +310,8 @@ const AnalyticsView = () => {
             >
               <BarChart>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="_id" />
-                <YAxis />
+                <XAxis dataKey="_id" style={{ fontSize: "11px" }} />
+                <YAxis style={{ fontSize: "11px" }} />
                 <Tooltip />
                 <Bar dataKey="count" fill="hsl(var(--secondary))" />
               </BarChart>
@@ -317,46 +322,46 @@ const AnalyticsView = () => {
 
       {/* Document Status Breakdown */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Document Processing Status
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs sm:text-sm">
             Current status of all documents in your organization
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+        <CardContent className="p-4 sm:p-6 pt-0">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
             <div className="flex items-center space-x-2">
-              <div className="p-2 rounded-full bg-green-100">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+              <div className="p-1.5 sm:p-2 rounded-full bg-green-100 flex-shrink-0">
+                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
               </div>
               <div>
-                <p className="text-sm font-medium">Ready</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-xs sm:text-sm font-medium">Ready</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">
                   {analyticsData?.documentsByStatus?.ready || 0}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="p-2 rounded-full bg-yellow-100">
-                <Clock className="h-4 w-4 text-yellow-600" />
+              <div className="p-1.5 sm:p-2 rounded-full bg-yellow-100 flex-shrink-0">
+                <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-600" />
               </div>
               <div>
-                <p className="text-sm font-medium">Processing</p>
-                <p className="text-2xl font-bold text-yellow-600">
+                <p className="text-xs sm:text-sm font-medium">Processing</p>
+                <p className="text-xl sm:text-2xl font-bold text-yellow-600">
                   {analyticsData?.documentsByStatus?.processing || 0}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="p-2 rounded-full bg-red-100">
-                <XCircle className="h-4 w-4 text-red-600" />
+              <div className="p-1.5 sm:p-2 rounded-full bg-red-100 flex-shrink-0">
+                <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />
               </div>
               <div>
-                <p className="text-sm font-medium">Error</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-xs sm:text-sm font-medium">Error</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-600">
                   {analyticsData?.documentsByStatus?.error || 0}
                 </p>
               </div>
@@ -366,43 +371,45 @@ const AnalyticsView = () => {
       </Card>
 
       {/* Additional Insights */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Key Metrics
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="space-y-3 sm:space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   Document Processing Rate
                 </span>
-                <span className="text-sm font-medium">
+                <span className="text-xs sm:text-sm font-medium">
                   {processingPercentage}%
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   Avg Messages per Conversation
                 </span>
-                <span className="text-sm font-medium">
+                <span className="text-xs sm:text-sm font-medium">
                   {avgMessagesPerConv}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   Avg Documents per Project
                 </span>
-                <span className="text-sm font-medium">{avgDocsPerProject}</span>
+                <span className="text-xs sm:text-sm font-medium">
+                  {avgDocsPerProject}
+                </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   Total Users
                 </span>
-                <span className="text-sm font-medium">
+                <span className="text-xs sm:text-sm font-medium">
                   {analyticsData?.totalUsers || 0}
                 </span>
               </div>
@@ -411,30 +418,30 @@ const AnalyticsView = () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Recent Activity
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="space-y-2 sm:space-y-3">
               {analyticsData?.recentDocuments?.slice(0, 3).map((doc, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between py-1"
+                  className="flex items-center justify-between py-1 gap-2"
                 >
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                     <span
-                      className="text-sm truncate max-w-[200px]"
+                      className="text-xs sm:text-sm truncate"
                       title={doc.filename}
                     >
                       {doc.filename}
                     </span>
                   </div>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ${
+                    className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0 ${
                       doc.vectorized
                         ? "bg-green-100 text-green-700"
                         : "bg-yellow-100 text-yellow-700"
@@ -444,7 +451,7 @@ const AnalyticsView = () => {
                   </span>
                 </div>
               )) || (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   No recent documents
                 </p>
               )}
@@ -454,18 +461,18 @@ const AnalyticsView = () => {
                 .map((conv, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between py-1"
+                    className="flex items-center justify-between py-1 gap-2"
                   >
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <MessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                       <span
-                        className="text-sm truncate max-w-[200px]"
+                        className="text-xs sm:text-sm truncate"
                         title={conv.title}
                       >
                         {conv.title}
                       </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">
                       {conv.messages?.length || 0} msgs
                     </span>
                   </div>
