@@ -257,7 +257,7 @@ const HomePage = () => {
       </section>
 
       {/* Recent Activity & Projects */}
-      <div className="grid gap-4 sm:gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Recent Projects */}
         <section>
           <div className="flex items-center justify-between mb-3 sm:mb-4">
@@ -275,7 +275,7 @@ const HomePage = () => {
             </Button>
           </div>
 
-          <div className="space-y-2 sm:space-y-2 sm:space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {projects.slice(0, 3).map((project) => (
               <Card
                 key={project._id}
@@ -346,7 +346,7 @@ const HomePage = () => {
 
           <Card>
             <CardContent className="p-3 sm:p-4">
-              <div className="space-y-3 sm:space-y-3 sm:space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {analyticsData?.recentDocuments
                   ?.slice(0, 3)
                   .map((doc, index) => (
