@@ -1,17 +1,33 @@
 import axios from "axios";
 
-// Get API base URL from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+// Resolve API base URL from environment variables and ensure it includes '/api'
+const RAW_API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_SERVER_BASE_URL ||
+  "";
+const API_BASE_URL = RAW_API_BASE
+  ? RAW_API_BASE.replace(/\/$/, "").endsWith("/api")
+    ? RAW_API_BASE.replace(/\/$/, "")
+    : RAW_API_BASE.replace(/\/$/, "") + "/api"
+  : "/api";
+
+// Optional explicit server base (without '/api') for cases where you need it
 const SERVER_BASE_URL = import.meta.env.VITE_SERVER_BASE_URL || "";
 
 // Create Axios instance with credentials support for HttpOnly cookies
 const api = axios.create({
-  baseURL: API_BASE_URL.startsWith("http") ? API_BASE_URL : "/api", // Use full URL in production or relative path in development
+  baseURL: API_BASE_URL, // Absolute URL (e.g. https://api.example.com/api) or relative '/api'
   withCredentials: true, // Essential for HttpOnly cookie authentication
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+// Helpful debug: show resolved API base URL in development
+if (import.meta.env.DEV) {
+  // eslint-disable-next-line no-console
+  console.log("Resolved API_BASE_URL:", API_BASE_URL);
+}
 
 // Request interceptor to add CSRF token to state-changing requests
 api.interceptors.request.use(async (config) => {
