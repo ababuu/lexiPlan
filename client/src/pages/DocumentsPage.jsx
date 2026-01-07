@@ -226,38 +226,40 @@ const DocumentsPage = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold">All Documents</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">All Documents</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Organization-wide document library
           </p>
         </div>
         <NotViewer>
           <Button
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
             onClick={() => setUploadModalOpen(true)}
           >
             <Upload className="h-4 w-4" />
-            Upload Document
+            <span>Upload Document</span>
           </Button>
         </NotViewer>
       </div>
 
       {/* Filter Bar */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
             Filter Documents
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <CardContent className="px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {/* Search Input */}
             <div className="space-y-2">
-              <Label htmlFor="search">Search by name</Label>
+              <Label htmlFor="search" className="text-sm">
+                Search by name
+              </Label>
               <form onSubmit={handleSearchSubmit} className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -265,19 +267,21 @@ const DocumentsPage = () => {
                   placeholder="Search documents..."
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-sm sm:text-base"
                 />
               </form>
             </div>
 
             {/* Project Filter */}
             <div className="space-y-2">
-              <Label htmlFor="project">Filter by project</Label>
+              <Label htmlFor="project" className="text-sm">
+                Filter by project
+              </Label>
               <Select
                 value={selectedProject || "all"}
                 onValueChange={handleProjectChange}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm sm:text-base">
                   <SelectValue placeholder="All projects" />
                 </SelectTrigger>
                 <SelectContent>
@@ -302,7 +306,7 @@ const DocumentsPage = () => {
               <Button
                 variant="outline"
                 onClick={handleClearFilters}
-                className="w-full"
+                className="w-full text-sm sm:text-base"
               >
                 Clear Filters
               </Button>
@@ -310,7 +314,7 @@ const DocumentsPage = () => {
           </div>
 
           {/* Results Summary */}
-          <div className="mt-4 text-sm text-muted-foreground">
+          <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground">
             Showing {documents.length} of {totalCount} documents
             {searchTerm && ` matching "${searchTerm}"`}
             {selectedProject && ` in ${getProjectName(selectedProject)}`}
@@ -334,132 +338,158 @@ const DocumentsPage = () => {
         />
       ) : (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
               Document Library
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             {documents.length === 0 ? (
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">
+              <div className="text-center py-6 sm:py-8">
+                <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-medium mb-2">
                   {totalCount === 0
                     ? "No documents yet"
                     : "No documents match your filters"}
                 </h3>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 px-4">
                   {totalCount === 0
                     ? "Upload your first document to get started"
                     : "Try adjusting your search terms or clearing the filters"}
                 </p>
                 {totalCount === 0 ? (
                   <NotViewer>
-                    <Button onClick={() => setUploadModalOpen(true)}>
+                    <Button
+                      onClick={() => setUploadModalOpen(true)}
+                      className="w-full sm:w-auto"
+                    >
                       <Upload className="h-4 w-4 mr-2" />
                       Upload Document
                     </Button>
                   </NotViewer>
                 ) : (
-                  <Button variant="outline" onClick={handleClearFilters}>
+                  <Button
+                    variant="outline"
+                    onClick={handleClearFilters}
+                    className="w-full sm:w-auto"
+                  >
                     Clear Filters
                   </Button>
                 )}
               </div>
             ) : (
               <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>File Name</TableHead>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Uploaded</TableHead>
-                      <TableHead className="w-[50px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {documents.map((document) => (
-                      <TableRow key={document._id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                            {document.filename}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">
-                            {getProjectName(document.projectId)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(document.vectorized)}
-                            <span className="text-sm">
-                              {getStatusText(document.vectorized)}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{formatFileSize(document.size)}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {new Date(document.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleRenameClick(document)}
-                                className="cursor-pointer"
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Rename
-                              </DropdownMenuItem>
-                              <NotViewer>
-                                <DropdownMenuItem
-                                  onClick={() => handleDeleteClick(document)}
-                                  className="cursor-pointer text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </NotViewer>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs sm:text-sm">
+                          File Name
+                        </TableHead>
+                        <TableHead className="text-xs sm:text-sm hidden md:table-cell">
+                          Project
+                        </TableHead>
+                        <TableHead className="text-xs sm:text-sm hidden sm:table-cell">
+                          Status
+                        </TableHead>
+                        <TableHead className="text-xs sm:text-sm hidden lg:table-cell">
+                          Size
+                        </TableHead>
+                        <TableHead className="text-xs sm:text-sm hidden xl:table-cell">
+                          Uploaded
+                        </TableHead>
+                        <TableHead className="w-[50px] text-xs sm:text-sm">
+                          Actions
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {documents.map((document) => (
+                        <TableRow key={document._id}>
+                          <TableCell className="font-medium text-xs sm:text-sm">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                              <span className="truncate">
+                                {document.filename}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm hidden md:table-cell">
+                            <span className="truncate block max-w-[150px]">
+                              {getProjectName(document.projectId)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(document.vectorized)}
+                              <span className="text-xs sm:text-sm">
+                                {getStatusText(document.vectorized)}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm hidden lg:table-cell">
+                            {formatFileSize(document.size)}
+                          </TableCell>
+                          <TableCell className="text-xs sm:text-sm text-muted-foreground hidden xl:table-cell">
+                            {new Date(document.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleRenameClick(document)}
+                                  className="cursor-pointer"
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Rename
+                                </DropdownMenuItem>
+                                <NotViewer>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteClick(document)}
+                                    className="cursor-pointer text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </NotViewer>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
 
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-sm text-muted-foreground">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 sm:mt-6">
+                    <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                       Page {currentPage} of {totalPages} ({totalCount} total
                       documents)
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={previousPage}
                         disabled={!hasPreviousPage}
+                        className="text-xs sm:text-sm"
                       >
-                        <ChevronLeft className="h-4 w-4 mr-1" />
-                        Previous
+                        <ChevronLeft className="h-4 w-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Previous</span>
                       </Button>
-                      <span className="text-sm text-muted-foreground px-2">
+                      <span className="text-xs sm:text-sm text-muted-foreground px-2">
                         {currentPage} / {totalPages}
                       </span>
                       <Button
@@ -467,9 +497,10 @@ const DocumentsPage = () => {
                         size="sm"
                         onClick={nextPage}
                         disabled={!hasNextPage}
+                        className="text-xs sm:text-sm"
                       >
-                        Next
-                        <ChevronRight className="h-4 w-4 ml-1" />
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight className="h-4 w-4 sm:ml-1" />
                       </Button>
                     </div>
                   </div>
