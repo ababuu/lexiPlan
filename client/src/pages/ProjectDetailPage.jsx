@@ -197,20 +197,20 @@ const ProjectDetailPage = () => {
   // Show loading state for project details
   if (projectLoading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-4" />
-            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-24 sm:w-32" />
           </div>
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
           <div className="space-y-2">
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-4 w-96" />
+            <Skeleton className="h-7 sm:h-8 w-48 sm:w-64" />
+            <Skeleton className="h-4 w-64 sm:w-96" />
           </div>
-          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-full sm:w-32" />
         </div>
 
         <TableSkeleton
@@ -223,50 +223,51 @@ const ProjectDetailPage = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
       {/* Header with back button */}
       <div className="flex items-center gap-4">
         <div
           onClick={() => navigate("/projects")}
-          className="flex items-center gap-2 text-md font-medium text-primary cursor-pointer hover:underline"
+          className="flex items-center gap-2 text-sm sm:text-base font-medium text-primary cursor-pointer hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Projects
+          <span className="hidden sm:inline">Back to Projects</span>
+          <span className="sm:hidden">Back</span>
         </div>
       </div>
 
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold truncate">
             {project?.title || "Project Documents"}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground line-clamp-2">
             {project?.description ||
               `Managing documents for project ${projectId}`}
           </p>
         </div>
         <NotViewer>
           <Button
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto flex-shrink-0"
             onClick={() => setIsUploadModalOpen(true)}
           >
             <Upload className="h-4 w-4" />
-            Upload Document
+            <span>Upload Document</span>
           </Button>
         </NotViewer>
       </div>
 
       {/* Documents Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
             Documents in this Project
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           {documentsLoading ? (
-            <div className="p-4">
+            <div className="p-2 sm:p-4">
               <TableSkeleton
                 rows={5}
                 columns={4}
@@ -274,14 +275,19 @@ const ProjectDetailPage = () => {
               />
             </div>
           ) : documents.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No documents yet</h3>
-              <p className="text-muted-foreground mb-4">
+            <div className="text-center py-6 sm:py-8">
+              <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-medium mb-2">
+                No documents yet
+              </h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 px-4">
                 Upload your first document to get started with this project
               </p>
               <NotViewer>
-                <Button onClick={() => setIsUploadModalOpen(true)}>
+                <Button
+                  onClick={() => setIsUploadModalOpen(true)}
+                  className="w-full sm:w-auto"
+                >
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Document
                 </Button>
@@ -289,92 +295,109 @@ const ProjectDetailPage = () => {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>File Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Uploaded</TableHead>
-                    <NotViewer>
-                      <TableHead className="w-[50px]">Actions</TableHead>
-                    </NotViewer>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documents.map((document) => (
-                    <TableRow key={document._id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          {document.filename}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(document.vectorized)}
-                          <span className="text-sm">
-                            {getStatusText(document.vectorized)}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatFileSize(document.size)}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(document.createdAt).toLocaleDateString()}
-                      </TableCell>
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">
+                        File Name
+                      </TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden sm:table-cell">
+                        Status
+                      </TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden md:table-cell">
+                        Size
+                      </TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden lg:table-cell">
+                        Uploaded
+                      </TableHead>
                       <NotViewer>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleRenameClick(document)}
-                                className="cursor-pointer"
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Rename
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteClick(document)}
-                                className="cursor-pointer text-destructive focus:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
+                        <TableHead className="w-[50px] text-xs sm:text-sm">
+                          Actions
+                        </TableHead>
                       </NotViewer>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {documents.map((document) => (
+                      <TableRow key={document._id}>
+                        <TableCell className="font-medium text-xs sm:text-sm">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="truncate">
+                              {document.filename}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(document.vectorized)}
+                            <span className="text-xs sm:text-sm">
+                              {getStatusText(document.vectorized)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden md:table-cell">
+                          {formatFileSize(document.size)}
+                        </TableCell>
+                        <TableCell className="text-xs sm:text-sm text-muted-foreground hidden lg:table-cell">
+                          {new Date(document.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <NotViewer>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleRenameClick(document)}
+                                  className="cursor-pointer"
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Rename
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteClick(document)}
+                                  className="cursor-pointer text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </NotViewer>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
               {/* Pagination for project documents */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 sm:mt-6">
+                  <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                     Page {currentPage} of {totalPages} ({totalCount} documents)
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={previousPage}
                       disabled={!hasPreviousPage}
+                      className="text-xs sm:text-sm"
                     >
-                      <ChevronLeft className="h-4 w-4 mr-1" />
-                      Previous
+                      <ChevronLeft className="h-4 w-4 sm:mr-1" />
+                      <span className="hidden sm:inline">Previous</span>
                     </Button>
-                    <span className="text-sm text-muted-foreground px-2">
+                    <span className="text-xs sm:text-sm text-muted-foreground px-2">
                       {currentPage} / {totalPages}
                     </span>
                     <Button
@@ -382,9 +405,10 @@ const ProjectDetailPage = () => {
                       size="sm"
                       onClick={nextPage}
                       disabled={!hasNextPage}
+                      className="text-xs sm:text-sm"
                     >
-                      Next
-                      <ChevronRight className="h-4 w-4 ml-1" />
+                      <span className="hidden sm:inline">Next</span>
+                      <ChevronRight className="h-4 w-4 sm:ml-1" />
                     </Button>
                   </div>
                 </div>
