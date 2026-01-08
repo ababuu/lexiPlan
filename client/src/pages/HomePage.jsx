@@ -100,9 +100,9 @@ const HomePage = () => {
           <div className="h-4 w-64 sm:w-80 bg-muted animate-pulse rounded mx-auto" />
 
           {/* Search Bar */}
-          <div className="max-w-md mx-auto px-4 sm:px-0">
+          {/* <div className="max-w-md mx-auto px-4 sm:px-0">
             <div className="h-10 w-full bg-muted animate-pulse rounded" />
-          </div>
+          </div> */}
         </div>
 
         {/* Quick Stats */}
@@ -149,7 +149,7 @@ const HomePage = () => {
         </p>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="max-w-md mx-auto px-4 sm:px-0">
+        {/* <form onSubmit={handleSearch} className="max-w-md mx-auto px-4 sm:px-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -159,7 +159,7 @@ const HomePage = () => {
               className="pl-10 pr-4 py-2 text-sm sm:text-base"
             />
           </div>
-        </form>
+        </form> */}
       </div>
 
       {/* Quick Stats */}
