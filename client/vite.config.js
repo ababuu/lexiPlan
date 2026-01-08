@@ -16,11 +16,12 @@ export default defineConfig(({ mode }) => {
           manualChunks: (id) => {
             // Split vendor dependencies into separate chunks
             if (id.includes("node_modules")) {
-              // React core libraries
+              // React core libraries - keep together to avoid circular dependency issues
               if (
                 id.includes("react") ||
                 id.includes("react-dom") ||
-                id.includes("react-router")
+                id.includes("react-router") ||
+                id.includes("scheduler")
               ) {
                 return "react-vendor";
               }
@@ -32,7 +33,10 @@ export default defineConfig(({ mode }) => {
               if (
                 id.includes("react-markdown") ||
                 id.includes("remark") ||
-                id.includes("rehype")
+                id.includes("rehype") ||
+                id.includes("unified") ||
+                id.includes("micromark") ||
+                id.includes("mdast")
               ) {
                 return "markdown-vendor";
               }
@@ -62,6 +66,10 @@ export default defineConfig(({ mode }) => {
           drop_debugger: mode === "production",
         },
       },
+    },
+    // Ensure proper module resolution
+    resolve: {
+      dedupe: ["react", "react-dom"],
     },
     server: {
       proxy: {
