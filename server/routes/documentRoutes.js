@@ -4,7 +4,6 @@ import { logAction, targetExtractors } from "../middleware/auditLogger.js";
 import {
   getDocuments,
   getDocumentById,
-  getPdfDocument,
   deleteDocument,
   updateDocument,
   uploadDocument,
@@ -17,9 +16,6 @@ router.get("/", getDocuments);
 
 // GET /api/documents/:id - Get specific document
 router.get("/:id", getDocumentById);
-
-// GET /api/documents/:id/pdf - Get PDF file
-router.get("/:id/pdf", getPdfDocument);
 
 // PUT /api/documents/:id - Update document
 router.put(
