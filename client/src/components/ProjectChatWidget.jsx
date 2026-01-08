@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { MessageSquare, Send, X, Bot, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,7 +7,9 @@ import { Input } from "./ui/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
 import { ScrollArea } from "./ui/ScrollArea";
 import useProjectChatStore from "../store/useProjectChatStore";
-import ReactMarkdown from "react-markdown";
+
+// Lazy load ReactMarkdown (heavy dependency)
+const ReactMarkdown = lazy(() => import("react-markdown"));
 
 const ProjectChatWidget = () => {
   const { projectId } = useParams();
@@ -177,7 +179,17 @@ const ProjectChatWidget = () => {
                               }`}
                             >
                               <div className="prose prose-xs sm:prose-sm max-w-none">
-                                <ReactMarkdown>{message.content}</ReactMarkdown>
+                                <Suspense
+                                  fallback={
+                                    <div className="animate-pulse text-xs">
+                                      Loading...
+                                    </div>
+                                  }
+                                >
+                                  <ReactMarkdown>
+                                    {message.content}
+                                  </ReactMarkdown>
+                                </Suspense>
                               </div>
                               <p
                                 className={`text-[9px] sm:text-xs mt-1 ${

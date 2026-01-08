@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import ReactMarkdown from "react-markdown";
 import { Card } from "./ui/Card";
 import { Input } from "./ui/Input";
 import { Button } from "./ui/Button";
@@ -17,6 +16,9 @@ import {
   X,
 } from "lucide-react";
 import useChatStore from "../store/useChatStore";
+
+// Lazy load ReactMarkdown (heavy dependency)
+const ReactMarkdown = lazy(() => import("react-markdown"));
 
 const ChatWindow = () => {
   const {
@@ -315,9 +317,17 @@ const ChatWindow = () => {
                               <div className="flex-1 max-w-2xl">
                                 <div className="bg-muted/50 border border-primary/10 rounded-2xl px-4 py-3">
                                   <div className="prose prose-sm max-w-none text-foreground">
-                                    <ReactMarkdown>
-                                      {message.content}
-                                    </ReactMarkdown>
+                                    <Suspense
+                                      fallback={
+                                        <div className="animate-pulse">
+                                          Loading...
+                                        </div>
+                                      }
+                                    >
+                                      <ReactMarkdown>
+                                        {message.content}
+                                      </ReactMarkdown>
+                                    </Suspense>
                                   </div>
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-2">
@@ -339,7 +349,17 @@ const ChatWindow = () => {
                         <div className="flex-1 max-w-2xl">
                           <div className="bg-muted/50 border border-primary/10 rounded-2xl px-4 py-3">
                             <div className="prose prose-sm max-w-none text-foreground">
-                              <ReactMarkdown>{streamingMessage}</ReactMarkdown>
+                              <Suspense
+                                fallback={
+                                  <div className="animate-pulse">
+                                    Loading...
+                                  </div>
+                                }
+                              >
+                                <ReactMarkdown>
+                                  {streamingMessage}
+                                </ReactMarkdown>
+                              </Suspense>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 mt-2">
