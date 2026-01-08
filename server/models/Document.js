@@ -16,7 +16,6 @@ const documentSchema = new mongoose.Schema(
     },
     content: String, // Raw text for backup
     size: { type: Number }, // File size in bytes (optional for backward compatibility)
-    pdfBuffer: { type: Buffer }, // Original PDF file buffer
     vectorized: { type: Boolean, default: false },
   },
   { timestamps: true }
