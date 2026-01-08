@@ -23,12 +23,6 @@ const api = axios.create({
   },
 });
 
-// Helpful debug: show resolved API base URL in development
-if (import.meta.env.DEV) {
-  // eslint-disable-next-line no-console
-  console.log("Resolved API_BASE_URL:", API_BASE_URL);
-}
-
 // Request interceptor to add CSRF token to state-changing requests
 api.interceptors.request.use(async (config) => {
   // Skip CSRF token for GET requests and auth endpoints

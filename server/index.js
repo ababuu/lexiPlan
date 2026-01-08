@@ -18,9 +18,8 @@ const app = express();
 const isDevelopment = process.env.NODE_ENV === "development";
 
 const corsOptions = {
-  origin: isDevelopment ? true : process.env.FRONTEND_URL,
+  origin: isDevelopment ? "http://localhost:5173" : process.env.FRONTEND_URL,
   credentials: true,
-  optionsSuccessStatus: 200, // Legacy browser support (IE11/SmartTVs)
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
 };
