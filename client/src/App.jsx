@@ -1,21 +1,30 @@
-import React, { useEffect } from "react";
+import React, { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
-import LoginPage from "./pages/LoginPage";
-import AcceptInvitePage from "./pages/AcceptInvitePage";
-import HomePage from "./pages/HomePage";
-import ProjectsPage from "./pages/ProjectsPage";
-import ProjectDetailPage from "./pages/ProjectDetailPage";
-import ChatPage from "./pages/ChatPage";
-import DocumentsPage from "./pages/DocumentsPage";
-import AnalyticsPage from "./pages/AnalyticsPage";
-import TeamSettingsPage from "./pages/TeamSettingsPage";
-import NotFoundPage from "./pages/NotFoundPage";
 import useAuthStore from "./store/useAuthStore";
 import "./globals.css";
+
+// Lazy load all page components for route-based code splitting
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const AcceptInvitePage = lazy(() => import("./pages/AcceptInvitePage"));
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
+const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
+const ChatPage = lazy(() => import("./pages/ChatPage"));
+const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
+const TeamSettingsPage = lazy(() => import("./pages/TeamSettingsPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-100"></div>
+  </div>
+);
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -41,43 +50,48 @@ function App() {
     >
       <BrowserRouter>
         <div className="App">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<Navigate to="/login" replace />} />
-            <Route path="/accept-invite" element={<AcceptInvitePage />} />
-
-            {/* Protected Routes */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<HomePage />} />
-              <Route path="projects" element={<ProjectsPage />} />
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<LoginPage />} />
               <Route
-                path="projects/:projectId"
-                element={<ProjectDetailPage />}
+                path="/signup"
+                element={<Navigate to="/login" replace />}
               />
-              <Route path="chat" element={<ChatPage />} />
-              <Route path="documents" element={<DocumentsPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="/accept-invite" element={<AcceptInvitePage />} />
+
+              {/* Protected Routes */}
               <Route
-                path="settings/team"
+                path="/"
                 element={
-                  <RoleProtectedRoute allowedRoles={["admin"]}>
-                    <TeamSettingsPage />
-                  </RoleProtectedRoute>
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
                 }
-              />
-            </Route>
+              >
+                <Route index element={<HomePage />} />
+                <Route path="projects" element={<ProjectsPage />} />
+                <Route
+                  path="projects/:projectId"
+                  element={<ProjectDetailPage />}
+                />
+                <Route path="chat" element={<ChatPage />} />
+                <Route path="documents" element={<DocumentsPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route
+                  path="settings/team"
+                  element={
+                    <RoleProtectedRoute allowedRoles={["admin"]}>
+                      <TeamSettingsPage />
+                    </RoleProtectedRoute>
+                  }
+                />
+              </Route>
 
-            {/* 404 Not Found - Catch all unmatched routes */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+              {/* 404 Not Found - Catch all unmatched routes */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </div>
       </BrowserRouter>
     </ThemeProvider>
