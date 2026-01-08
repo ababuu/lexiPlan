@@ -12,7 +12,6 @@ import {
   Edit,
   ChevronLeft,
   ChevronRight,
-  Eye,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import {
@@ -56,7 +55,6 @@ import {
 } from "../components/ui/AlertDialog";
 import TableSkeleton from "../components/ui/TableSkeleton";
 import UploadModal from "../components/UploadModal";
-import PDFViewerModal from "../components/PDFViewerModal";
 import { documentsApi, projectsApi } from "../lib/api";
 import useDocumentStore from "../store/useDocumentStore";
 import { useToast, showToast } from "../hooks/useToast";
@@ -96,10 +94,6 @@ const DocumentsPage = () => {
   const [projects, setProjects] = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
-
-  // PDF Viewer state
-  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState(null);
 
   // Document action states
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -177,12 +171,6 @@ const DocumentsPage = () => {
     await loadDocuments(); // Refresh document list
     setUploadModalOpen(false);
     showToast.success("Success", "Document uploaded successfully");
-  };
-
-  // PDF Viewer handlers
-  const handleOpenPdf = (document) => {
-    setSelectedDocument(document);
-    setPdfViewerOpen(true);
   };
 
   // Document action handlers
@@ -459,13 +447,6 @@ const DocumentsPage = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
-                                  onClick={() => handleOpenPdf(document)}
-                                  className="cursor-pointer"
-                                >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Open
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
                                   onClick={() => handleRenameClick(document)}
                                   className="cursor-pointer"
                                 >
@@ -609,14 +590,6 @@ const DocumentsPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* PDF Viewer Modal */}
-      <PDFViewerModal
-        isOpen={pdfViewerOpen}
-        onClose={() => setPdfViewerOpen(false)}
-        documentId={selectedDocument?._id}
-        documentName={selectedDocument?.filename}
-      />
     </div>
   );
 };
