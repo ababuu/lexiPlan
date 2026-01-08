@@ -45,6 +45,11 @@ const csrfProtection = csurf({
   },
 });
 
+// CSRF Token Endpoint (must be before CSRF middleware to avoid validation)
+app.get("/api/csrf-token", csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
 // CSRF Wrapper: Skip for OPTIONS and specific paths
 app.use((req, res, next) => {
   // 1. Always skip CSRF for OPTIONS requests (Preflight)
@@ -56,7 +61,6 @@ app.use((req, res, next) => {
     "/api/auth/login",
     "/api/auth/logout",
     "/api/auth/me", // Added for initial auth check
-    "/api/csrf-token",
   ];
 
   if (csrfExemptPaths.some((path) => req.path.startsWith(path))) {
@@ -64,11 +68,6 @@ app.use((req, res, next) => {
   }
 
   return csrfProtection(req, res, next);
-});
-
-// CSRF Token Endpoint
-app.get("/api/csrf-token", (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
 });
 
 // 4. DATABASE CONNECTION
