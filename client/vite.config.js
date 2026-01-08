@@ -17,11 +17,13 @@ export default defineConfig(({ mode }) => {
             // Split vendor dependencies into separate chunks
             if (id.includes("node_modules")) {
               // React core libraries - keep together to avoid circular dependency issues
+              // Include next-themes with React since it depends on React context
               if (
                 id.includes("react") ||
                 id.includes("react-dom") ||
                 id.includes("react-router") ||
-                id.includes("scheduler")
+                id.includes("scheduler") ||
+                id.includes("next-themes")
               ) {
                 return "react-vendor";
               }
