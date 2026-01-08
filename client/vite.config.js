@@ -1,91 +1,98 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load environment variables
   const env = loadEnv(mode, process.cwd(), "");
   const serverUrl = env.VITE_SERVER_BASE_URL || "http://localhost:5000";
 
   return {
-    plugins: [react()],
+    plugins: [
+      react({
+        jsxRuntime: "automatic",
+      }),
+    ],
+
     build: {
-      // Optimize chunk splitting
       rollupOptions: {
         output: {
-          manualChunks: (id) => {
-            // Split vendor dependencies into separate chunks
-            if (id.includes("node_modules")) {
-              // React core libraries - keep together to avoid circular dependency issues
-              // Include next-themes with React since it depends on React context
-              if (
-                id.includes("react") ||
-                id.includes("react-dom") ||
-                id.includes("react-router") ||
-                id.includes("scheduler") ||
-                id.includes("next-themes")
-              ) {
-                return "react-vendor";
-              }
-              // UI libraries (Radix UI)
-              if (id.includes("@radix-ui")) {
-                return "ui-vendor";
-              }
-              // Markdown rendering
-              if (
-                id.includes("react-markdown") ||
-                id.includes("remark") ||
-                id.includes("rehype") ||
-                id.includes("unified") ||
-                id.includes("micromark") ||
-                id.includes("mdast")
-              ) {
-                return "markdown-vendor";
-              }
-              // Animation libraries
-              if (id.includes("framer-motion")) {
-                return "animation-vendor";
-              }
-              // State management and utilities
-              if (id.includes("zustand") || id.includes("axios")) {
-                return "utils-vendor";
-              }
-              // All other node_modules
-              return "vendor";
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+
+            // Group Radix UI
+            if (id.includes("@radix-ui")) {
+              return "radix-ui";
+            }
+
+            // Icons
+            if (id.includes("lucide-react")) {
+              return "icons";
+            }
+
+            // Animations
+            if (id.includes("framer-motion")) {
+              return "animation";
+            }
+
+            // Markdown tooling
+            if (id.includes("react-markdown")) {
+              return "markdown";
+            }
+
+            // State + HTTP
+            if (id.includes("zustand")) {
+              return "state";
+            }
+
+            if (id.includes("axios")) {
+              return "http";
             }
           },
         },
       },
-      // Increase chunk size warning limit (default is 500kb)
-      chunkSizeWarningLimit: 600,
-      // Enable CSS code splitting
-      cssCodeSplit: true,
-      // Minify options
+
+      chunkSizeWarningLimit: 1000,
+
       minify: "terser",
       terserOptions: {
         compress: {
           drop_console: mode === "production",
           drop_debugger: mode === "production",
+          pure_funcs:
+            mode === "production"
+              ? ["console.info", "console.debug", "console.warn"]
+              : [],
+        },
+        format: {
+          comments: false,
         },
       },
+
+      sourcemap: mode !== "production",
     },
-    // Ensure proper module resolution
+
+    /**
+     * CRITICAL:
+     * Deduplicate ONLY React core packages
+     */
     resolve: {
       dedupe: ["react", "react-dom"],
     },
+
+    /**
+     * Let Vite prebundle deps properly
+     * (do NOT exclude lucide-react)
+     */
+    optimizeDeps: {
+      include: ["react", "react-dom", "react-router-dom", "next-themes"],
+    },
+
     server: {
       proxy: {
         "/api": {
           target: serverUrl,
           changeOrigin: true,
           secure: false,
-          // Important for cookies to work in development
-          configure: (proxy, options) => {
-            proxy.on("proxyReq", (proxyReq, req, res) => {
-              // Forward cookies properly
-              proxyReq.setHeader("Origin", "http://localhost:5173");
-            });
-          },
+          rewrite: (path) => path.replace(/^\/api/, ""),
         },
       },
     },
