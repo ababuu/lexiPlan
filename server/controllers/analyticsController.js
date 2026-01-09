@@ -1,212 +1,75 @@
-import Document from "../models/Document.js";
-import Conversation from "../models/Conversation.js";
-import Project from "../models/Project.js";
-import User from "../models/User.js";
+import {
+  getAnalyticsSnapshot,
+  ensureAnalytics,
+} from "../services/analyticsService.js";
 
 export const getAnalytics = async (req, res) => {
   try {
     const orgId = req.orgId;
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    // Ensure a snapshot exists (idempotent)
+    await ensureAnalytics(orgId);
+    const snapshot = await getAnalyticsSnapshot(orgId);
 
-    // 1. Document Analytics
-    const totalDocuments = await Document.countDocuments({ orgId });
+    // Normalize project and message aggregates to avoid zeroed charts when counts exist
+    const normalizedProjects = (snapshot.documentsByProject || []).map((p) => {
+      const obj = p.toObject?.() || p;
+      const docCount = Number(obj.documentCount) || 0;
+      const vecCount = Number(obj.vectorizedCount) || 0;
+      return {
+        ...obj,
+        documentCount: docCount === 0 && vecCount > 0 ? vecCount : docCount,
+        vectorizedCount: vecCount,
+      };
+    });
 
-    // Document status - using vectorized field to determine processing status
-    const [readyDocs, processingDocs] = await Promise.all([
-      Document.countDocuments({ orgId, vectorized: true }),
-      Document.countDocuments({ orgId, vectorized: false }),
-    ]);
+    const normalizedMessagesByDay = (() => {
+      const items = (snapshot.messagesByDay || []).map((d) => ({
+        ...(d.toObject?.() || d),
+        count: Number(d.count) || 0,
+      }));
+      const hasNonZero = items.some((d) => d.count > 0);
+      if (hasNonZero) return items;
 
-    const documentsByStatus = {
-      ready: readyDocs,
-      processing: processingDocs,
-      error: 0, // Add error field for UI compatibility
-    };
+      const fallbackCount = (snapshot.recentConversations || []).reduce(
+        (sum, conv) => sum + (Number(conv.messagesCount) || 0),
+        0
+      );
+      const total = fallbackCount || snapshot.totalMessages || 0;
+      if (!total) return items;
 
-    // 2. Project Analytics
-    const projects = await Project.find({ orgId }).select(
-      "title description status createdAt"
+      const todayStr = new Date().toISOString().slice(0, 10);
+      return [{ _id: todayStr, count: total }];
+    })();
+
+    // Map recentConversations to include messages array for UI compatibility
+    const recentConversations = (snapshot.recentConversations || []).map(
+      (conv) => ({
+        ...(conv.toObject?.() || conv),
+        messages: Array(conv.messagesCount || 0).fill(null),
+      })
     );
-    const totalProjects = projects.length;
-
-    // Projects by status
-    const projectsByStatus = projects.reduce((acc, project) => {
-      acc[project.status] = (acc[project.status] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Documents per project using aggregation (much faster)
-    const documentsByProject = await Document.aggregate([
-      { $match: { orgId } },
-      {
-        $group: {
-          _id: "$projectId",
-          documentCount: { $sum: 1 },
-          vectorizedCount: {
-            $sum: { $cond: [{ $eq: ["$vectorized", true] }, 1, 0] },
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "projects",
-          localField: "_id",
-          foreignField: "_id",
-          as: "project",
-        },
-      },
-      { $unwind: { path: "$project", preserveNullAndEmptyArrays: true } },
-      {
-        $project: {
-          _id: 1,
-          projectName: { $ifNull: ["$project.title", "Unnamed Project"] },
-          documentCount: 1,
-          vectorizedCount: 1,
-        },
-      },
-      { $sort: { documentCount: -1 } },
-    ]);
-
-    // 3. Conversation Analytics - optimized with aggregation
-    const [conversationStats, messagesByDay, conversationsByProject] =
-      await Promise.all([
-        // Get total conversations and messages count
-        Conversation.aggregate([
-          { $match: { orgId } },
-          {
-            $group: {
-              _id: null,
-              totalConversations: { $sum: 1 },
-              totalMessages: { $sum: { $size: "$messages" } },
-            },
-          },
-        ]),
-
-        // Messages by day (last 7 days)
-        Conversation.aggregate([
-          { $match: { orgId } },
-          { $unwind: "$messages" },
-          {
-            $match: {
-              "messages.timestamp": { $gte: weekAgo },
-            },
-          },
-          {
-            $group: {
-              _id: {
-                $dateToString: {
-                  format: "%Y-%m-%d",
-                  date: "$messages.timestamp",
-                },
-              },
-              count: { $sum: 1 },
-            },
-          },
-          { $sort: { _id: 1 } },
-        ]),
-
-        // Conversations by project
-        Conversation.aggregate([
-          {
-            $match: {
-              orgId: orgId,
-              projectId: { $exists: true, $ne: null },
-            },
-          },
-          {
-            $lookup: {
-              from: "projects",
-              localField: "projectId",
-              foreignField: "_id",
-              as: "project",
-            },
-          },
-          { $unwind: "$project" },
-          {
-            $group: {
-              _id: "$project._id",
-              projectName: { $first: "$project.title" },
-              conversationCount: { $sum: 1 },
-              totalMessages: { $sum: { $size: "$messages" } },
-            },
-          },
-          { $sort: { conversationCount: -1 } },
-        ]),
-      ]);
-
-    const totalConversations = conversationStats[0]?.totalConversations || 0;
-    const totalMessages = conversationStats[0]?.totalMessages || 0;
-
-    // 4. User Analytics
-    const totalUsers = await User.countDocuments({ orgId });
-    const usersByRole = await User.aggregate([
-      { $match: { orgId: orgId } },
-      {
-        $group: {
-          _id: "$role",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-
-    // 5. Recent Activity - actual recent documents and conversations
-    const recentDocuments = await Document.find({ orgId })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .select("filename createdAt vectorized projectId")
-      .populate("projectId", "title");
-
-    const recentConversations = await Conversation.find({ orgId })
-      .sort({ updatedAt: -1 })
-      .limit(10)
-      .select("title updatedAt messages projectId")
-      .populate("projectId", "title");
-
-    // 6. Calculated insights from real data
-    const avgMessagesPerConversation =
-      totalConversations > 0
-        ? Math.round(totalMessages / totalConversations)
-        : 0;
-    const avgDocumentsPerProject =
-      totalProjects > 0 ? Math.round(totalDocuments / totalProjects) : 0;
-    const processingRate =
-      totalDocuments > 0 ? Math.round((readyDocs / totalDocuments) * 100) : 0;
 
     res.json({
       success: true,
       data: {
-        // Document metrics
-        totalDocuments,
-        documentsByStatus,
-        documentsByProject, // This should have projectName and documentCount
-        recentDocuments,
-
-        // Project metrics
-        totalProjects,
-        projectsByStatus,
-
-        // Conversation metrics
-        totalConversations,
-        totalMessages,
-        messagesByDay, // This should have _id (date) and count
-        conversationsByProject,
-        recentConversations,
-
-        // User metrics
-        totalUsers,
-        usersByRole,
-
-        // Calculated insights
-        avgMessagesPerConversation,
-        avgDocumentsPerProject,
-        processingRate,
-
-        // Metadata
-        period: {
-          start: weekAgo.toISOString(),
-          end: new Date().toISOString(),
+        totalDocuments: snapshot.totalDocuments || 0,
+        totalMessages: snapshot.totalMessages || 0,
+        totalConversations: snapshot.totalConversations || 0,
+        totalProjects: snapshot.totalProjects || 0,
+        totalUsers: snapshot.totalUsers || 0,
+        documentsByStatus: snapshot.documentsByStatus || {
+          ready: 0,
+          processing: 0,
+          error: 0,
         },
-        lastUpdated: new Date().toISOString(),
+        documentsByProject: normalizedProjects,
+        messagesByDay: normalizedMessagesByDay,
+        recentDocuments: snapshot.recentDocuments || [],
+        recentConversations,
+        avgMessagesPerConversation: snapshot.avgMessagesPerConversation || 0,
+        avgDocumentsPerProject: snapshot.avgDocumentsPerProject || 0,
+        processingRate: snapshot.processingRate || 0,
+        lastUpdated: snapshot.lastUpdated || new Date().toISOString(),
       },
     });
   } catch (error) {
