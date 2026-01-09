@@ -19,7 +19,7 @@ import {
   Clock,
   BarChart3,
 } from "lucide-react";
-import { projectsApi, analyticsApi } from "../lib/api";
+import { analyticsApi } from "../lib/api";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -35,13 +35,19 @@ const HomePage = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [projectsResponse, analyticsResponse] = await Promise.all([
-        projectsApi.getProjects(),
-        analyticsApi.getAnalytics(),
-      ]);
+      const analyticsResponse = await analyticsApi.getAnalytics();
+      const analytics = analyticsResponse.data.data;
+      setAnalyticsData(analytics);
 
-      setProjects(projectsResponse.data);
-      setAnalyticsData(analyticsResponse.data.data);
+      // Derive a lightweight projects list from analytics documentsByProject
+      const derivedProjects = (analytics.documentsByProject || []).map(
+        (item) => ({
+          _id: item.projectId,
+          title: item.projectName,
+          description: `${item.documentCount || 0} documents`,
+        })
+      );
+      setProjects(derivedProjects);
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
     } finally {
@@ -280,7 +286,9 @@ const HomePage = () => {
               <Card
                 key={project._id}
                 className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => navigate(`/projects/${project._id}`)}
+                onClick={() =>
+                  project._id && navigate(`/projects/${project._id}`)
+                }
               >
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between gap-2">
@@ -290,7 +298,7 @@ const HomePage = () => {
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-medium text-sm sm:text-base truncate">
-                          {project.title}
+                          {project.title || "Untitled Project"}
                         </h3>
                         <p className="text-xs sm:text-sm text-muted-foreground truncate">
                           {project.description || "No description"}
@@ -300,9 +308,7 @@ const HomePage = () => {
                     <div className="text-[10px] sm:text-xs text-muted-foreground flex items-center flex-shrink-0">
                       <Clock className="h-3 w-3 mr-1 hidden sm:inline" />
                       <span className="hidden sm:inline">
-                        {new Date(
-                          project.updatedAt || project.createdAt
-                        ).toLocaleDateString()}
+                        {project._id ? "Open project" : "Project summary"}
                       </span>
                     </div>
                   </div>
