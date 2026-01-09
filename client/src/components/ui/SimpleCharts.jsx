@@ -1,34 +1,17 @@
 import React from "react";
 import { BarChart3 } from "lucide-react";
 
-// Enhanced Bar Chart implementation with better styling and data handling
-export const BarChart = ({ children, data, ...props }) => {
-  return (
-    <div className="w-full h-64 flex items-end gap-2 p-4 bg-card rounded-lg border">
-      {children}
-    </div>
-  );
-};
+// Lightweight chart primitives that honor dataKey props
+export const BarChart = ({ children }) => children;
+export const Bar = ({ dataKey }) => null;
+export const XAxis = ({ dataKey }) => null;
+export const YAxis = () => null;
+export const CartesianGrid = () => null;
+export const Tooltip = () => null;
 
-export const Bar = ({ dataKey, fill }) => {
-  return null; // This is handled by the ResponsiveContainer
-};
-
-export const XAxis = ({ dataKey }) => {
-  return null;
-};
-
-export const YAxis = () => {
-  return null;
-};
-
-export const CartesianGrid = ({ strokeDasharray }) => {
-  return null;
-};
-
-export const Tooltip = () => {
-  return null;
-};
+// Ensure stable identification in production builds
+Bar.displayName = "Bar";
+XAxis.displayName = "XAxis";
 
 export const ResponsiveContainer = ({
   width = "100%",
@@ -36,12 +19,56 @@ export const ResponsiveContainer = ({
   children,
   data = [],
 }) => {
-  // Ensure data is an array and has valid entries
+  // Extract keys from children (Bar/XAxis) even when nested inside BarChart
+  const flattenChildren = (nodes) =>
+    React.Children.toArray(nodes).flatMap((child) =>
+      React.isValidElement(child) && child.props?.children
+        ? [child, ...flattenChildren(child.props.children)]
+        : [child]
+    );
+
+  const allChildren = flattenChildren(children);
+  const isBar = (c) =>
+    c?.type === Bar ||
+    c?.type?.displayName === "Bar" ||
+    c?.type?.name === "Bar";
+  const isXAxis = (c) =>
+    c?.type === XAxis ||
+    c?.type?.displayName === "XAxis" ||
+    c?.type?.name === "XAxis";
+
+  const barChild = allChildren.find(isBar);
+  const xAxisChild = allChildren.find(isXAxis);
+  const barValueKey = barChild?.props?.dataKey;
+  const labelKey = xAxisChild?.props?.dataKey;
+
   const validData = Array.isArray(data)
-    ? data.filter((item) => item && typeof item === "object")
+    ? data.filter(
+        (item) => item && typeof item === "object" && Object.keys(item).length
+      )
     : [];
 
-  if (validData.length === 0) {
+  // Auto-detect a numeric key if none was provided or if values resolve to zero
+  const autoValueKey = (() => {
+    if (validData.length === 0) return null;
+    const sample = validData.find((item) => item && typeof item === "object");
+    if (!sample) return null;
+    return Object.keys(sample).find((key) => {
+      const val = sample[key];
+      if (typeof val === "number" && !isNaN(val)) return true;
+      if (
+        typeof val === "string" &&
+        val.trim() !== "" &&
+        Number.isFinite(Number(val))
+      )
+        return true;
+      return false;
+    });
+  })();
+
+  const valueKey = barValueKey || autoValueKey;
+
+  if (validData.length === 0 || !valueKey) {
     return (
       <div style={{ width, height }} className="relative">
         <div className="absolute inset-0 flex items-center justify-center">
@@ -61,66 +88,70 @@ export const ResponsiveContainer = ({
     );
   }
 
-  // Find numeric values more reliably
   const getNumericValue = (item) => {
-    const keys = Object.keys(item);
-    for (const key of keys) {
-      const value = item[key];
-      if (typeof value === "number" && !isNaN(value) && key !== "_id") {
-        return value;
-      }
+    const val = item?.[valueKey];
+    if (typeof val === "number" && !isNaN(val)) return val;
+    if (typeof val === "string" && val.trim() !== "") {
+      const num = Number(val);
+      return Number.isFinite(num) ? num : 0;
+    }
+    // If the selected key fails, try another numeric key on this item
+    const fallbackKey = Object.keys(item || {}).find((key) => {
+      const v = item[key];
+      if (typeof v === "number" && !isNaN(v)) return true;
+      if (
+        typeof v === "string" &&
+        v.trim() !== "" &&
+        Number.isFinite(Number(v))
+      )
+        return true;
+      return false;
+    });
+    if (fallbackKey) {
+      const v = item[fallbackKey];
+      return typeof v === "number" ? v : Number(v) || 0;
     }
     return 0;
   };
 
-  // Find string labels more reliably
   const getLabel = (item, index) => {
-    const keys = Object.keys(item);
-    for (const key of keys) {
-      const value = item[key];
-      if (typeof value === "string" && value.length < 20) {
-        // For dates in _id field, format them nicely
-        if (key === "_id" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-          return new Date(value).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          });
-        }
-        // For other string values, use them directly
-        if (key !== "_id") {
-          return value;
-        }
+    if (labelKey && item?.[labelKey]) {
+      const val = item[labelKey];
+      if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        return new Date(val).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
       }
+      if (typeof val === "string") return val;
     }
-    // If _id looks like a date, use it
-    if (
-      item._id &&
-      typeof item._id === "string" &&
-      /^\d{4}-\d{2}-\d{2}$/.test(item._id)
-    ) {
-      return new Date(item._id).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-    }
+    // Fallback: find a short string field
+    const candidate = Object.values(item).find(
+      (v) => typeof v === "string" && v.length < 30
+    );
+    if (candidate) return candidate;
     return `Item ${index + 1}`;
   };
 
-  const maxValue = Math.max(...validData.map(getNumericValue));
-  const minValue = Math.min(...validData.map(getNumericValue));
-  const range = maxValue - minValue || 1;
+  const values = validData.map(getNumericValue);
+  const maxValue = Math.max(...values, 0);
+
+  // If everything is zero, log a hint to aid debugging without breaking UI
+  if (maxValue === 0 && typeof console !== "undefined") {
+    console.debug("SimpleCharts: all zero values", {
+      valueKey,
+      sample: validData.slice(0, 3),
+    });
+  }
 
   return (
     <div style={{ width, height }} className="relative">
-      {/* Chart container */}
       <div className="flex items-end justify-center h-full gap-1 px-4 py-2">
         {validData.map((item, index) => {
           const value = getNumericValue(item);
           const label = getLabel(item, index);
           const barHeight =
             maxValue > 0 ? Math.max((value / maxValue) * (height - 80), 2) : 2;
-
-          // Color gradient based on value
           const intensity = maxValue > 0 ? value / maxValue : 0.5;
           const opacity = 0.3 + intensity * 0.7;
 
@@ -129,12 +160,9 @@ export const ResponsiveContainer = ({
               key={index}
               className="flex flex-col items-center flex-1 max-w-16"
             >
-              {/* Value label on hover */}
               <div className="text-xs text-muted-foreground mb-1 opacity-0 hover:opacity-100 transition-opacity">
                 {value}
               </div>
-
-              {/* Bar */}
               <div
                 className="w-full bg-gradient-to-t from-primary to-primary/60 rounded-t-sm transition-all duration-300 hover:from-primary/80 hover:to-primary/40 cursor-pointer shadow-sm"
                 style={{
@@ -144,8 +172,6 @@ export const ResponsiveContainer = ({
                 }}
                 title={`${label}: ${value}`}
               />
-
-              {/* Label */}
               <div className="text-xs text-muted-foreground mt-2 text-center truncate w-full">
                 {label}
               </div>
@@ -154,7 +180,6 @@ export const ResponsiveContainer = ({
         })}
       </div>
 
-      {/* Grid lines */}
       <div className="absolute inset-0 pointer-events-none">
         {[0.25, 0.5, 0.75].map((ratio, i) => (
           <div
@@ -165,7 +190,6 @@ export const ResponsiveContainer = ({
         ))}
       </div>
 
-      {/* Y-axis labels */}
       <div className="absolute left-0 top-0 h-full flex flex-col justify-between py-2 text-xs text-muted-foreground">
         <span>{maxValue}</span>
         <span>{Math.round(maxValue * 0.75)}</span>
