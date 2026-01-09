@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Upload,
-  Plus,
   ArrowLeft,
   FileText,
   Clock,
@@ -36,15 +35,11 @@ import {
   DropdownMenuTrigger,
 } from "../components/ui/DropdownMenu";
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "../components/ui/AlertDialog";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/Dialog";
 import { Input } from "../components/ui/Input";
 import TableSkeleton from "../components/ui/TableSkeleton";
 import { Skeleton } from "../components/ui/Skeleton";
@@ -52,13 +47,12 @@ import { documentsApi, projectsApi } from "../lib/api";
 import UploadModal from "../components/UploadModal";
 import ProjectChatWidget from "../components/ProjectChatWidget";
 import useDocumentStore from "../store/useDocumentStore";
-import { useToast, showToast } from "../hooks/useToast";
+import { showToast } from "../hooks/useToast";
 import { NotViewer } from "../components/HasAccess";
 
 const ProjectDetailPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   // Project state
   const [project, setProject] = useState(null);
@@ -430,77 +424,86 @@ const ProjectDetailPage = () => {
       <ProjectChatWidget />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Document</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{documentToDelete?.filename}"?
-              This action cannot be undone and will remove all associated vector
-              data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => setDeleteDialogOpen(false)}
-              disabled={actionLoading}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              disabled={actionLoading}
-            >
-              {actionLoading ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="p-0">
+          <Card className="shadow-2xl border-none">
+            <DialogHeader className="p-0">
+              <CardHeader>
+                <DialogTitle className="text-base sm:text-lg font-semibold">
+                  Delete Document
+                </DialogTitle>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
+                  Are you sure you want to delete "{documentToDelete?.filename}
+                  ", this cannot be undone and will remove associated vector
+                  data.
+                </p>
+              </CardHeader>
+            </DialogHeader>
+            <CardContent className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 sm:pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+                disabled={actionLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteConfirm}
+                disabled={actionLoading}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {actionLoading ? "Deleting..." : "Delete"}
+              </Button>
+            </CardContent>
+          </Card>
+        </DialogContent>
+      </Dialog>
 
       {/* Rename Dialog */}
-      <AlertDialog
-        isOpen={renameDialogOpen}
-        onClose={() => setRenameDialogOpen(false)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Rename Document</AlertDialogTitle>
-            <AlertDialogDescription>
-              Enter a new name for "{documentToRename?.filename}":
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="px-6 py-4">
-            <Input
-              value={newFileName}
-              onChange={(e) => setNewFileName(e.target.value)}
-              placeholder="Enter new filename..."
-              className="w-full"
-              disabled={actionLoading}
-            />
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setRenameDialogOpen(false);
-                setNewFileName("");
-              }}
-              disabled={actionLoading}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRenameConfirm}
-              disabled={actionLoading || !newFileName.trim()}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {actionLoading ? "Renaming..." : "Rename"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent className="p-0">
+          <Card className="shadow-2xl border-none">
+            <DialogHeader className="p-0">
+              <CardHeader>
+                <DialogTitle className="text-base sm:text-lg font-semibold">
+                  Rename Document
+                </DialogTitle>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
+                  Enter a new name for "{documentToRename?.filename}":
+                </p>
+              </CardHeader>
+            </DialogHeader>
+            <CardContent className="space-y-3 sm:space-y-4">
+              <Input
+                value={newFileName}
+                onChange={(e) => setNewFileName(e.target.value)}
+                placeholder="Enter new filename..."
+                className="w-full"
+                disabled={actionLoading}
+              />
+            </CardContent>
+            <CardContent className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 sm:pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRenameDialogOpen(false);
+                  setNewFileName("");
+                }}
+                disabled={actionLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleRenameConfirm}
+                disabled={actionLoading || !newFileName.trim()}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {actionLoading ? "Renaming..." : "Rename"}
+              </Button>
+            </CardContent>
+          </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
