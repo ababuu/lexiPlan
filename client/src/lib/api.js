@@ -75,7 +75,7 @@ export const authApi = {
 
 // Projects API methods
 export const projectsApi = {
-  getProjects: () => api.get("/projects"),
+  getProjects: (params = {}) => api.get("/projects", { params }),
   createProject: (projectData) => api.post("/projects", projectData),
   getProject: (id) => api.get(`/projects/${id}`),
   updateProject: (id, projectData) => api.put(`/projects/${id}`, projectData),
