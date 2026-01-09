@@ -49,9 +49,6 @@ export const deleteDocumentVectors = async (docId, orgId) => {
       orgId: orgId.toString(),
     });
 
-    console.log(
-      `🗑️ Deleted ${deleteResult.deletedCount} vector chunks for document ${docId}`
-    );
     return deleteResult.deletedCount;
   } catch (error) {
     console.error("❌ Error deleting document vectors:", error);
@@ -72,7 +69,6 @@ export const deleteProjectVectors = async (projectId, orgId) => {
     }).select("_id");
 
     if (projectDocuments.length === 0) {
-      console.log(`📝 No documents found for project ${projectId}`);
       return 0;
     }
 
@@ -83,9 +79,6 @@ export const deleteProjectVectors = async (projectId, orgId) => {
       orgId: orgId.toString(),
     });
 
-    console.log(
-      `🗑️ Deleted ${deleteResult.deletedCount} vector chunks for project ${projectId} (${docIds.length} documents)`
-    );
     return deleteResult.deletedCount;
   } catch (error) {
     console.error("❌ Error deleting project vectors:", error);

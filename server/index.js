@@ -73,7 +73,7 @@ app.use((req, res, next) => {
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`✅ MongoDB Connected`);
   } catch (error) {
     console.error(`❌ Error: ${error.message}`);
     setTimeout(connectDB, 5000);

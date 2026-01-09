@@ -26,7 +26,6 @@ const useAuthStore = create((set, get) => ({
 
       return userData;
     } catch (error) {
-      console.log("Auth check failed:", error.response?.status);
       set({
         user: null,
         isAuthenticated: false,

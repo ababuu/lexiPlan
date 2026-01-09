@@ -270,7 +270,6 @@ export const uploadDocument = asyncHandler(async (req, res) => {
       newDoc.vectorized = true;
       await newDoc.save();
       await markDocumentVectorized({ orgId, projectId, projectName });
-      console.log(`✅ Vectorization complete: ${newDoc.filename}`);
     })
     .catch((err) => console.error("❌ Background Error:", err));
 

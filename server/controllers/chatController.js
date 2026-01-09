@@ -199,8 +199,6 @@ const saveConversation = async (
       await conversation.save();
     }
 
-    console.log("Conversation saved:", conversation._id);
-
     // Update analytics snapshot (2 messages per interaction: user + AI)
     const messagesCount = 2;
     await recordConversation({

@@ -9,8 +9,6 @@ import AuditLog from "../models/AuditLog.js";
  */
 export const logAction = (actionType, targetExtractor) => {
   return async (req, res, next) => {
-    console.log(`[AUDIT] Interceptor attached for: ${actionType}`);
-
     // Store original res.json to intercept successful responses
     const originalJson = res.json;
 
@@ -72,11 +70,6 @@ async function logAuditAction(
       const result = targetExtractor(req, res, responseData);
       target = result.target || target;
       targetId = result.targetId || null;
-
-      // Debug logging
-      console.log(
-        `[AUDIT DEBUG] ${actionType} - Target: "${target}", TargetId: "${targetId}"`
-      );
     } else if (typeof targetExtractor === "string") {
       target = targetExtractor;
     } else if (req.body?.name) {
@@ -102,7 +95,6 @@ async function logAuditAction(
     };
 
     await AuditLog.logAction(auditData);
-    console.log(`[AUDIT SUCCESS] ${actionType} logged for: ${target}`);
   } catch (error) {
     console.error("Audit logging error:", error);
     // Don't throw error to prevent breaking the main application flow
