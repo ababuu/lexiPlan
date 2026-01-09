@@ -45,6 +45,11 @@ const LoginForm = ({ onSwitchToRegister }) => {
     }));
   };
 
+  const handleSignUpClick = () => {
+    clearError();
+    onSwitchToRegister();
+  };
+
   return (
     <div className="flex items-center justify-center bg-background">
       <Card className="w-full max-w-md bg-[hsl(var(--nav-background))] shadow-lg">
@@ -99,7 +104,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
             <div className="text-center text-xs sm:text-sm mt-6">
               Don't have an account?{" "}
               <span
-                onClick={onSwitchToRegister}
+                onClick={handleSignUpClick}
                 className="text-primary hover:underline cursor-pointer font-medium"
               >
                 Sign up

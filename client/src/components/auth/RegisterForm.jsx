@@ -46,6 +46,11 @@ const RegisterForm = ({ onSwitchToLogin }) => {
     }));
   };
 
+  const handleLoginClick = () => {
+    clearError();
+    onSwitchToLogin();
+  };
+
   return (
     <div className="flex items-center justify-center bg-background">
       <Card className="w-full max-w-md bg-[hsl(var(--nav-background))] shadow-lg">
@@ -116,7 +121,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             <div className="text-center text-xs sm:text-sm mt-6">
               Already have an account{" "}
               <span
-                onClick={onSwitchToLogin}
+                onClick={handleLoginClick}
                 className="text-primary hover:underline cursor-pointer font-medium"
               >
                 Sign in
