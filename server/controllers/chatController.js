@@ -3,6 +3,7 @@ import { getContextualAnswer } from "../services/aiService.js";
 import Conversation from "../models/Conversation.js";
 import mongoose from "mongoose";
 import { HumanMessage, AIMessage, SystemMessage } from "langchain";
+import { recordConversation } from "../services/analyticsService.js";
 
 export const chatWithDocuments = async (req, res) => {
   const { message, conversationId, projectId } = req.body;
@@ -199,6 +200,15 @@ const saveConversation = async (
     }
 
     console.log("Conversation saved:", conversation._id);
+
+    // Update analytics snapshot (2 messages per interaction: user + AI)
+    const messagesCount = 2;
+    await recordConversation({
+      orgId,
+      title: conversation.title,
+      messagesCount,
+      projectId: conversation.projectId,
+    });
   } catch (error) {
     console.error("Failed to save conversation:", error);
   }

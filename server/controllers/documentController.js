@@ -1,4 +1,5 @@
 import Document from "../models/Document.js";
+import Project from "../models/Project.js";
 import {
   deleteDocumentVectors,
   processDocument,
@@ -6,6 +7,10 @@ import {
 import asyncHandler from "../middleware/asyncHandler.js";
 import { PDFParse } from "pdf-parse";
 import AuditLog from "../models/AuditLog.js";
+import {
+  recordDocument,
+  markDocumentVectorized,
+} from "../services/analyticsService.js";
 
 // GET /api/documents - Get documents for organization with pagination and filtering
 export const getDocuments = asyncHandler(async (req, res) => {
@@ -237,6 +242,10 @@ export const uploadDocument = asyncHandler(async (req, res) => {
   await parser.destroy();
 
   // 4. Save metadata
+  const projectName = projectId
+    ? (await Project.findById(projectId).select("title"))?.title
+    : null;
+
   const newDoc = await Document.create({
     filename: req.file.originalname,
     orgId: orgId,
@@ -246,11 +255,21 @@ export const uploadDocument = asyncHandler(async (req, res) => {
     vectorized: false,
   });
 
+  // 4b. Update analytics snapshot (initially not vectorized)
+  await recordDocument({
+    orgId,
+    filename: newDoc.filename,
+    vectorized: false,
+    projectId,
+    projectName,
+  });
+
   // 5. Background vectorization
   processDocument(result.text, newDoc._id, orgId, projectId)
     .then(async () => {
       newDoc.vectorized = true;
       await newDoc.save();
+      await markDocumentVectorized({ orgId, projectId, projectName });
       console.log(`✅ Vectorization complete: ${newDoc.filename}`);
     })
     .catch((err) => console.error("❌ Background Error:", err));

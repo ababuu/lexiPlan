@@ -3,6 +3,7 @@ import Organization from "../models/Organization.js";
 import generateToken from "../utils/generateToken.js";
 import jwt from "jsonwebtoken";
 import { logActionDirect } from "../middleware/auditLogger.js";
+import { recordUser } from "../services/analyticsService.js";
 
 const cookieOptions = (req) => ({
   httpOnly: true,
@@ -50,6 +51,9 @@ export const register = async (req, res, next) => {
         },
       });
 
+      // Update analytics snapshot
+      await recordUser({ orgId: org._id });
+
       const token = generateToken(user);
       res.cookie("token", token, cookieOptions(req));
       return res.status(201).json({
@@ -92,6 +96,9 @@ export const register = async (req, res, next) => {
         role: "admin",
         status: "active",
       });
+
+      // Update analytics snapshot
+      await recordUser({ orgId: orgId });
 
       const token = generateToken(user);
       res.cookie("token", token, cookieOptions(req));
