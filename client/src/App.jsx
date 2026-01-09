@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
+import Spinner from "./components/ui/Spinner";
 import useAuthStore from "./store/useAuthStore";
 import "./globals.css";
 
@@ -18,13 +19,6 @@ const DocumentsPage = lazy(() => import("./pages/DocumentsPage"));
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const TeamSettingsPage = lazy(() => import("./pages/TeamSettingsPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
-
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-100"></div>
-  </div>
-);
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -50,7 +44,7 @@ function App() {
     >
       <BrowserRouter>
         <div className="App">
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<Spinner />}>
             <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
