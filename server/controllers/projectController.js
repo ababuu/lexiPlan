@@ -1,6 +1,7 @@
 import Project from "../models/Project.js";
 import Document from "../models/Document.js";
 import { deleteProjectVectors } from "../services/vectorService.js";
+import { recordProject } from "../services/analyticsService.js";
 
 // Create project (scoped to req.orgId)
 export const createProject = async (req, res, next) => {
@@ -10,6 +11,11 @@ export const createProject = async (req, res, next) => {
     if (!orgId)
       return res.status(400).json({ message: "Organization context missing" });
 
+    const existing = await Project.findOne({ orgId, title: title?.trim() });
+    if (existing) {
+      return res.status(400).json({ message: "Project title must be unique" });
+    }
+
     const project = await Project.create({
       title,
       description,
@@ -17,6 +23,9 @@ export const createProject = async (req, res, next) => {
       meta,
       orgId,
     });
+
+    // Update analytics snapshot
+    await recordProject({ orgId, title: project.title });
     res.status(201).json(project);
   } catch (error) {
     next(error);
@@ -27,7 +36,27 @@ export const createProject = async (req, res, next) => {
 export const getProjects = async (req, res, next) => {
   try {
     const orgId = req.orgId;
-    const projects = await Project.find({ orgId }).sort({ createdAt: -1 });
+    const {
+      search,
+      status,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
+
+    const query = { orgId };
+
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    if (search) {
+      const regex = new RegExp(search, "i");
+      query.$or = [{ title: regex }, { description: regex }];
+    }
+
+    const sort = { [sortBy]: sortOrder === "asc" ? 1 : -1 };
+
+    const projects = await Project.find(query).sort(sort);
     res.json(projects);
   } catch (error) {
     next(error);
@@ -52,7 +81,21 @@ export const updateProject = async (req, res, next) => {
   try {
     const orgId = req.orgId;
     const id = req.params.id;
-    const updates = req.body;
+    const updates = { ...req.body };
+
+    if (updates.title) {
+      const existing = await Project.findOne({
+        _id: { $ne: id },
+        orgId,
+        title: updates.title.trim(),
+      });
+      if (existing) {
+        return res
+          .status(400)
+          .json({ message: "Project title must be unique" });
+      }
+    }
+
     const project = await Project.findOneAndUpdate(
       { _id: id, orgId },
       updates,
