@@ -11,19 +11,17 @@ import CardSkeleton from "./ui/CardSkeleton";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Label } from "./ui/Label";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "./ui/AlertDialog";
-import { FolderOpen, Plus, Edit, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/Dialog";
+import { FolderOpen, Plus, Edit, Trash2, Filter, Search } from "lucide-react";
 import { projectsApi } from "../lib/api";
 import { NotViewer } from "./HasAccess";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "./ui/Select";
 
 const ProjectsView = () => {
   const navigate = useNavigate();
@@ -41,15 +39,47 @@ const ProjectsView = () => {
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState(null);
+  const [editProject, setEditProject] = useState({
+    title: "",
+    description: "",
+    status: "todo",
+  });
+
+  const statusOptions = [
+    { value: "todo", label: "To Do" },
+    { value: "in-progress", label: "In Progress" },
+    { value: "done", label: "Done" },
+    { value: "blocked", label: "Blocked" },
+  ];
+
+  const statusStyles = {
+    "in-progress": "bg-amber-100 text-amber-700",
+    todo: "bg-muted text-muted-foreground",
+    done: "bg-green-100 text-green-700",
+    blocked: "bg-red-100 text-red-700",
+  };
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
   useEffect(() => {
     loadProjects();
   }, []);
 
-  const loadProjects = async () => {
+  const loadProjects = async (filters = {}) => {
+    const params = {
+      ...(filters.search ? { search: filters.search } : {}),
+      ...(filters.status && filters.status !== "all"
+        ? { status: filters.status }
+        : {}),
+    };
     try {
       setLoading(true);
-      const response = await projectsApi.getProjects();
-      setProjects(response.data);
+      const response = await projectsApi.getProjects(params);
+      setProjects(response.data || []);
     } catch (error) {
       console.error("Failed to load projects:", error);
     } finally {
@@ -57,13 +87,16 @@ const ProjectsView = () => {
     }
   };
 
+  const refreshProjects = (statusValue = selectedStatus, term = searchTerm) =>
+    loadProjects({ search: term.trim(), status: statusValue });
+
   const handleCreateProject = async (e) => {
     e.preventDefault();
     try {
       await projectsApi.createProject(newProject);
       setNewProject({ title: "", description: "", status: "todo" });
       setShowCreateForm(false);
-      loadProjects();
+      refreshProjects();
     } catch (error) {
       console.error("Failed to create project:", error);
     }
@@ -77,6 +110,22 @@ const ProjectsView = () => {
     });
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    refreshProjects();
+  };
+
+  const handleStatusChange = (value) => {
+    setSelectedStatus(value);
+    refreshProjects(value);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedStatus("all");
+    loadProjects();
+  };
+
   const handleProjectClick = (projectId) => {
     navigate(`/projects/${projectId}`);
   };
@@ -85,6 +134,33 @@ const ProjectsView = () => {
     e.stopPropagation(); // Prevent card click
     setProjectToDelete(project);
     setDeleteDialogOpen(true);
+  };
+
+  const handleEditClick = (e, project) => {
+    e.stopPropagation();
+    setProjectToEdit(project);
+    setEditProject({
+      title: project.title || "",
+      description: project.description || "",
+      status: project.status || "todo",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!projectToEdit) return;
+    try {
+      setActionLoading(true);
+      await projectsApi.updateProject(projectToEdit._id, editProject);
+      await refreshProjects();
+      setEditDialogOpen(false);
+      setProjectToEdit(null);
+    } catch (error) {
+      console.error("Failed to update project:", error);
+      alert(error?.response?.data?.message || "Failed to update project");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -172,6 +248,74 @@ const ProjectsView = () => {
         </NotViewer>
       </div>
 
+      {/* Filter Bar */}
+      <Card>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
+            Filter Projects
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {/* Search Input */}
+            <div className="space-y-2">
+              <Label htmlFor="project-search" className="text-sm">
+                Search by name
+              </Label>
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="project-search"
+                  placeholder="Search projects..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 text-sm sm:text-base"
+                />
+              </form>
+            </div>
+
+            {/* Status Filter */}
+            <div className="space-y-2">
+              <Label htmlFor="project-status" className="text-sm">
+                Filter by status
+              </Label>
+              <Select value={selectedStatus} onValueChange={handleStatusChange}>
+                <SelectTrigger className="text-sm sm:text-base">
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Clear Filters Button */}
+            <div className="space-y-2 flex items-end">
+              <Button
+                variant="outline"
+                onClick={handleClearFilters}
+                className="w-full text-sm sm:text-base"
+              >
+                Clear Filters
+              </Button>
+            </div>
+          </div>
+
+          {/* Results Summary */}
+          <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground">
+            Showing {projects.length} project{projects.length === 1 ? "" : "s"}
+            {searchTerm && ` matching "${searchTerm}"`}
+            {selectedStatus !== "all" && ` with status ${selectedStatus}`}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Create Project Form */}
       {showCreateForm && (
         <Card className="shadow-lg">
@@ -220,6 +364,26 @@ const ProjectsView = () => {
                   placeholder="Brief description of your project..."
                   className="text-sm sm:text-base"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Status</Label>
+                <Select
+                  value={newProject.status}
+                  onValueChange={(value) =>
+                    setNewProject((prev) => ({ ...prev, status: value }))
+                  }
+                >
+                  <SelectTrigger className="text-sm sm:text-base">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4 sm:gap-0 pt-2">
@@ -274,13 +438,14 @@ const ProjectsView = () => {
                         className="flex space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {/* <Button
+                        <Button
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 sm:h-8 sm:w-8"
+                          onClick={(e) => handleEditClick(e, project)}
                         >
                           <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        </Button> */}
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -302,11 +467,8 @@ const ProjectsView = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                     <span
                       className={`px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium w-fit ${
-                        project.status === "active"
-                          ? "bg-primary/20 text-primary"
-                          : project.status === "completed"
-                          ? "bg-secondary/20 text-secondary"
-                          : "bg-muted text-muted-foreground"
+                        statusStyles[project.status] ||
+                        "bg-muted text-muted-foreground"
                       }`}
                     >
                       {project.status.charAt(0).toUpperCase() +
@@ -349,36 +511,108 @@ const ProjectsView = () => {
         </Card>
       )}
 
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Project</DialogTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Update the project details.
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-3 px-1 sm:px-2">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Title</Label>
+              <Input
+                value={editProject.title}
+                onChange={(e) =>
+                  setEditProject((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Project title"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Description</Label>
+              <Input
+                value={editProject.description}
+                onChange={(e) =>
+                  setEditProject((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Brief description"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Status</Label>
+              <Select
+                value={editProject.status}
+                onValueChange={(value) =>
+                  setEditProject((prev) => ({ ...prev, status: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 sm:pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={actionLoading}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleEditSave} disabled={actionLoading}>
+              {actionLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Project</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Project</DialogTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Are you sure you want to delete "{projectToDelete?.title}"? This
               action cannot be undone and will also delete all associated
               documents.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
+            </p>
+          </DialogHeader>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 sm:pt-4">
+            <Button
+              variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
               disabled={actionLoading}
             >
               Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleDeleteConfirm}
               disabled={actionLoading}
             >
               {actionLoading ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
