@@ -20,6 +20,11 @@ const userSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    orgName: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     role: {
       type: String,
       enum: ["admin", "member", "viewer"],
