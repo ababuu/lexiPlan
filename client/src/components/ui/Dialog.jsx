@@ -1,4 +1,6 @@
 import React, { createContext, useContext } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../lib/utils";
 
 const DialogContext = createContext({});
@@ -7,8 +9,20 @@ const Dialog = ({ open, onOpenChange, children }) => {
   return (
     <DialogContext.Provider value={{ open, onOpenChange }}>
       {children}
-      {open && (
-        <div className="fixed inset-0 z-40 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+      {createPortal(
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              key="dialog-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            />
+          )}
+        </AnimatePresence>,
+        document.body
       )}
     </DialogContext.Provider>
   );
@@ -18,31 +32,39 @@ const DialogContent = React.forwardRef(
   ({ className, children, ...props }, ref) => {
     const { open, onOpenChange } = useContext(DialogContext);
 
-    if (!open) return null;
-
     const handleBackdropClick = (e) => {
       if (e.target === e.currentTarget) {
         onOpenChange?.(false);
       }
     };
 
-    return (
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
-        onClick={handleBackdropClick}
-      >
-        <div
-          ref={ref}
-          className={cn(
-            "relative z-[60] grid w-full max-w-lg gap-3 sm:gap-4 border bg-background p-4 sm:p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-lg sm:rounded-lg",
-            className
-          )}
-          onClick={(e) => e.stopPropagation()}
-          {...props}
-        >
-          {children}
-        </div>
-      </div>
+    return createPortal(
+      <AnimatePresence>
+        {open && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
+            onClick={handleBackdropClick}
+          >
+            <motion.div
+              key="dialog-content"
+              ref={ref}
+              initial={{ opacity: 0, scale: 0.97, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 10 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className={cn(
+                "relative z-50 grid w-full max-w-lg gap-3 sm:gap-4 bg-background p-4 sm:p-6 rounded-lg sm:rounded-lg",
+                className
+              )}
+              onClick={(e) => e.stopPropagation()}
+              {...props}
+            >
+              {children}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>,
+      document.body
     );
   }
 );
