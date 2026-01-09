@@ -14,108 +14,69 @@ const cookieOptions = (req) => ({
 
 export const register = async (req, res, next) => {
   try {
-    const { email, password, orgName, orgId } = req.body;
+    const { email, password, orgName } = req.body;
 
-    // For new organization signup (first admin)
-    if (orgName) {
-      if (!email || !password || !orgName)
-        return res.status(400).json({ message: "Missing fields" });
-
-      const existing = await User.findOne({ email });
-      if (existing)
-        return res.status(409).json({ message: "Email already registered" });
-
-      // Create new organization and first admin user
-      const org = await Organization.create({ name: orgName });
-      const user = await User.create({
-        email,
-        password,
-        orgId: org._id,
-        orgName: org.name,
-        role: "admin",
-        status: "active",
-      });
-
-      // Log organization creation
-      logActionDirect({
-        performer: user._id,
-        action: "CREATE_ORGANIZATION",
-        target: orgName,
-        targetId: org._id,
-        orgId: org._id,
-        metadata: {
-          method: "POST",
-          path: "/auth/register",
-          statusCode: 201,
-          isFirstAdmin: true,
-        },
-      });
-
-      // Update analytics snapshot
-      await recordUser({ orgId: org._id });
-
-      const token = generateToken(user);
-      res.cookie("token", token, cookieOptions(req));
-      return res.status(201).json({
-        user: {
-          id: user._id,
-          email: user.email,
-          orgName: user.orgName,
-          role: user.role,
-          status: user.status,
-        },
+    // Validate input
+    if (!email || !password || !orgName) {
+      return res.status(400).json({
+        message: "Email, password, and organization name are required",
       });
     }
 
-    // For joining existing organization
-    if (orgId) {
-      // Check if organization exists
-      const org = await Organization.findById(orgId);
-      if (!org)
-        return res.status(404).json({ message: "Organization not found" });
-
-      // Check if any users already exist for this organization
-      const existingUsers = await User.countDocuments({ orgId });
-      if (existingUsers > 0) {
-        return res.status(403).json({
-          message:
-            "Organization already has users. New members must be invited by an admin.",
-        });
-      }
-
-      const existing = await User.findOne({ email });
-      if (existing)
-        return res.status(409).json({ message: "Email already registered" });
-
-      // Create first admin for existing organization
-      const user = await User.create({
-        email,
-        password,
-        orgId,
-        orgName,
-        role: "admin",
-        status: "active",
-      });
-
-      // Update analytics snapshot
-      await recordUser({ orgId: orgId });
-
-      const token = generateToken(user);
-      res.cookie("token", token, cookieOptions(req));
-      return res.status(201).json({
-        user: {
-          id: user._id,
-          email: user.email,
-          orgName: user.orgName,
-          role: user.role,
-          status: user.status,
-        },
+    // Check if organization with the same name already exists
+    const existingOrg = await Organization.findOne({ name: orgName });
+    if (existingOrg) {
+      return res.status(409).json({
+        message:
+          "An organization with this name already exists. If you are part of this organization, please contact your administrator for an invitation.",
       });
     }
 
-    return res.status(400).json({
-      message:
-        "Either orgName (new organization) or orgId (existing organization) is required",
+    // Check if user with the same email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: "Email already registered" });
+    }
+
+    // Create new organization and first admin user
+    const org = await Organization.create({ name: orgName });
+    const user = await User.create({
+      email,
+      password,
+      orgId: org._id,
+      orgName: org.name,
+      role: "admin",
+      status: "active",
+    });
+
+    // Log organization creation
+    logActionDirect({
+      performer: user._id,
+      action: "CREATE_ORGANIZATION",
+      target: orgName,
+      targetId: org._id,
+      orgId: org._id,
+      metadata: {
+        method: "POST",
+        path: "/auth/register",
+        statusCode: 201,
+        isFirstAdmin: true,
+      },
+    });
+
+    // Update analytics snapshot
+    await recordUser({ orgId: org._id });
+
+    const token = generateToken(user);
+    res.cookie("token", token, cookieOptions(req));
+    return res.status(201).json({
+      user: {
+        id: user._id,
+        email: user.email,
+        orgName: user.orgName,
+        role: user.role,
+        status: user.status,
+      },
     });
   } catch (error) {
     next(error);
