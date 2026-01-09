@@ -24,11 +24,7 @@ const Navbar = ({ toggleSidebar }) => {
           >
             <Menu className="w-5 h-5" />
           </Button>
-          <img
-            src="../../src/assets/logo.png"
-            alt="LexiPlan Logo"
-            className="w-7 h-8"
-          />
+          <img src="/logo.png" alt="LexiPlan Logo" className="w-7 h-8" />
 
           <div className="flex flex-col items-start">
             <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text">
