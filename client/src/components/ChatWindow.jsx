@@ -5,6 +5,7 @@ import { Input } from "./ui/Input";
 import { Button } from "./ui/Button";
 import { ScrollArea } from "./ui/ScrollArea";
 import ChatSkeleton from "./ui/ChatSkeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/Dialog";
 import {
   Send,
   Bot,
@@ -37,6 +38,8 @@ const ChatWindow = () => {
 
   const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -76,11 +79,18 @@ const ChatWindow = () => {
     await sendMessage(messageContent);
   };
 
-  const handleDeleteConversation = async (e, conversationId) => {
+  const handleDeleteConversation = (e, conversationId) => {
     e.stopPropagation();
-    if (window.confirm("Are you sure you want to delete this conversation?")) {
+    setConversationToDelete(conversationId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (conversationToDelete) {
       try {
-        await deleteConversation(conversationId);
+        await deleteConversation(conversationToDelete);
+        setDeleteDialogOpen(false);
+        setConversationToDelete(null);
       } catch (error) {
         console.error("Failed to delete conversation:", error);
       }
@@ -434,6 +444,38 @@ const ChatWindow = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Conversation</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete this conversation? This action
+            cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setConversationToDelete(null);
+              }}
+              className="bg-foreground/10 hover:bg-foreground/20 hover:text-foreground"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
