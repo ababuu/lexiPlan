@@ -136,7 +136,7 @@ const ChatWindow = () => {
         <div
           className={`${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } lg:translate-x-0 fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto w-64 bg-background border-r border-primary/20 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out`}
+          } lg:translate-x-0 fixed lg:relative inset-y-0 left-0 z-50 lg:z-auto min-w-64 bg-background border-r border-primary/20 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out`}
         >
           <div className="p-3 border-b border-primary/20 flex-shrink-0">
             {/* Close button for mobile */}
@@ -222,7 +222,7 @@ const ChatWindow = () => {
                       />
                       <div className="flex-1 min-w-0 pr-6">
                         <p
-                          className={`text-xs font-medium truncate leading-tight ${
+                          className={`text-xs font-medium w-52 truncate leading-tight ${
                             activeConversationId === conv._id
                               ? "text-primary"
                               : "text-foreground/80"
@@ -249,7 +249,7 @@ const ChatWindow = () => {
                       </div>
                       <button
                         onClick={(e) => handleDeleteConversation(e, conv._id)}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 hover:text-destructive transition-all duration-200 z-10"
+                        className="absolute top-2 right-2 opacity-100 md:opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 hover:text-destructive transition-all duration-200 z-10"
                       >
                         <Trash2 className="w-2.5 h-2.5" />
                       </button>
