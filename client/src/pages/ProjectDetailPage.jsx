@@ -425,83 +425,74 @@ const ProjectDetailPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="p-0">
-          <Card className="shadow-2xl border-none">
-            <DialogHeader className="p-0">
-              <CardHeader>
-                <DialogTitle className="text-base sm:text-lg font-semibold">
-                  Delete Document
-                </DialogTitle>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
-                  Are you sure you want to delete "{documentToDelete?.filename}
-                  ", this cannot be undone and will remove associated vector
-                  data.
-                </p>
-              </CardHeader>
-            </DialogHeader>
-            <CardContent className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 sm:pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setDeleteDialogOpen(false)}
-                disabled={actionLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleDeleteConfirm}
-                disabled={actionLoading}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {actionLoading ? "Deleting..." : "Delete"}
-              </Button>
-            </CardContent>
-          </Card>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Delete Document</DialogTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
+              Are you sure you want to delete "{documentToDelete?.filename}
+              "? This cannot be undone and will remove associated vector data.
+            </p>
+          </DialogHeader>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 sm:pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={actionLoading}
+              className="bg-foreground/10 hover:bg-foreground/20 hover:text-foreground"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteConfirm}
+              disabled={actionLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {actionLoading ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Rename Dialog */}
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-        <DialogContent className="p-0">
-          <Card className="shadow-2xl border-none">
-            <DialogHeader className="p-0">
-              <CardHeader>
-                <DialogTitle className="text-base sm:text-lg font-semibold">
-                  Rename Document
-                </DialogTitle>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
-                  Enter a new name for "{documentToRename?.filename}":
-                </p>
-              </CardHeader>
-            </DialogHeader>
-            <CardContent className="space-y-3 sm:space-y-4">
-              <Input
-                value={newFileName}
-                onChange={(e) => setNewFileName(e.target.value)}
-                placeholder="Enter new filename..."
-                className="w-full"
-                disabled={actionLoading}
-              />
-            </CardContent>
-            <CardContent className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 sm:pt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setRenameDialogOpen(false);
-                  setNewFileName("");
-                }}
-                disabled={actionLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleRenameConfirm}
-                disabled={actionLoading || !newFileName.trim()}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                {actionLoading ? "Renaming..." : "Rename"}
-              </Button>
-            </CardContent>
-          </Card>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base sm:text-lg font-semibold">
+              Rename Document
+            </DialogTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">
+              Enter a new name for "{documentToRename?.filename}":
+            </p>
+          </DialogHeader>
+          <div className="space-y-3 sm:px-2">
+            <Input
+              value={newFileName}
+              onChange={(e) => setNewFileName(e.target.value)}
+              placeholder="Enter new filename..."
+              className="w-full"
+              disabled={actionLoading}
+            />
+          </div>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 sm:pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRenameDialogOpen(false);
+                setNewFileName("");
+              }}
+              disabled={actionLoading}
+              className="bg-foreground/10 hover:bg-foreground/20 hover:text-foreground"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRenameConfirm}
+              disabled={actionLoading || !newFileName.trim()}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {actionLoading ? "Renaming..." : "Rename"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
