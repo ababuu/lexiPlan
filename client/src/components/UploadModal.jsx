@@ -206,7 +206,7 @@ const UploadModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-background rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+      <div className="bg-background rounded-lg shadow-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-4 sm:p-6 border-b">
           <div>
             <h2 className="text-lg sm:text-xl font-semibold">
@@ -226,7 +226,7 @@ const UploadModal = ({
           </Button>
         </div>
 
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-[calc(95vh-180px)] sm:max-h-[calc(90vh-120px)] overflow-auto">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
           {/* Project Selection */}
           <div className="space-y-2 sm:space-y-3">
             <Label className="text-xs sm:text-sm font-medium">
@@ -322,7 +322,7 @@ const UploadModal = ({
                 </Button>
               </div>
 
-              <div className="space-y-2 max-h-36 sm:max-h-48 overflow-auto">
+              <div className="space-y-2 overflow-auto">
                 {files.map((file) => (
                   <div
                     key={file.id}
@@ -363,7 +363,7 @@ const UploadModal = ({
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-4 sm:p-6 border-t bg-muted/50 gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-4 sm:p-6 border-t bg-muted/50 gap-3 mt-auto">
           <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
             {files.length > 0 && `${files.length} file(s) selected`}
           </div>
