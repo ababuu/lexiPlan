@@ -64,7 +64,7 @@ const useChatStore = create((set, get) => ({
             set({ streamingMessage: fullResponse });
           }
         },
-        projectId // Pass projectId to the API
+        projectId, // Pass projectId to the API
       );
 
       // If we got a new conversation ID, set it as active
@@ -93,10 +93,14 @@ const useChatStore = create((set, get) => ({
     } catch (error) {
       console.error("Chat error:", error);
 
+      // Use the error message from the server if available
+      const errorContent =
+        error?.message || "Sorry, I encountered an error. Please try again.";
+
       const errorMessage = {
         id: assistantMessageId,
         role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
+        content: errorContent,
         timestamp: new Date(),
         isError: true,
       };
@@ -159,7 +163,7 @@ const useChatStore = create((set, get) => ({
       // Remove from local state
       set((state) => ({
         conversations: state.conversations.filter(
-          (c) => c._id !== conversationId
+          (c) => c._id !== conversationId,
         ),
         // Clear chat if we're deleting the active conversation
         ...(state.activeConversationId === conversationId && {
