@@ -61,7 +61,7 @@ api.interceptors.response.use(
     // Let the auth store and components handle 401 errors appropriately
     // Don't auto-redirect as it can cause infinite loops
     return Promise.reject(error);
-  }
+  },
 );
 
 // Auth API methods
@@ -133,10 +133,7 @@ export const chatApi = {
       }),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+    // Read the stream even if status is not ok to get the error message
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let newConversationId = null;
@@ -166,16 +163,26 @@ export const chatApi = {
               } else if (parsed.type === "content") {
                 onChunk(parsed);
               } else if (parsed.type === "error") {
+                // Throw the specific error from the server
                 throw new Error(parsed.error);
               } else if (parsed.content) {
                 // Backward compatibility for old format
                 onChunk(parsed);
               }
             } catch (e) {
-              // Skip invalid JSON chunks
+              // If it's our thrown error, re-throw it
+              if (e.message && !e.message.includes("JSON")) {
+                throw e;
+              }
+              // Otherwise skip invalid JSON chunks
             }
           }
         }
+      }
+
+      // If we got here without a proper completion and response wasn't ok, throw generic error
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
     } finally {
       reader.releaseLock();
