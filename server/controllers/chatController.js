@@ -143,11 +143,24 @@ export const chatWithDocuments = async (req, res) => {
       finalConversationId,
     );
   } catch (err) {
-    console.error("Chat Error:", err);
+    console.error("Chat Error:", err?.message, err.status);
+    // Check for Gemini rate limit error or timeout
+    let errorMsg = "AI failed to respond";
+    if (
+      err?.status === 429 ||
+      err?.isTimeout ||
+      err?.message?.toLowerCase().includes("rate limit") ||
+      err?.message?.toLowerCase().includes("quota") ||
+      err?.message?.toLowerCase().includes("timeout") ||
+      err?.message?.toLowerCase().includes("too many requests")
+    ) {
+      errorMsg =
+        "You've reached the free Gemini message limit (20 per day). Please try again later or upgrade your API plan.";
+    }
     res.status(500).write(
       `data: ${JSON.stringify({
         type: "error",
-        error: "AI failed to respond",
+        error: errorMsg,
       })}\n\n`,
     );
     res.end();
