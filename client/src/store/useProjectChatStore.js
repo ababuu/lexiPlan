@@ -91,7 +91,7 @@ const useProjectChatStore = create(
                 set({ streamingMessage: fullResponse });
               }
             },
-            projectId // Pass projectId to mark as project-specific
+            projectId, // Pass projectId to mark as project-specific
           );
 
           // If we got a new conversation ID, set it as active for this project
@@ -131,10 +131,15 @@ const useProjectChatStore = create(
         } catch (error) {
           console.error("Project chat error:", error);
 
+          // Use the error message from the server if available
+          const errorContent =
+            error?.message ||
+            "Sorry, I encountered an error. Please try again.";
+
           const errorMessage = {
             id: assistantMessageId,
             role: "assistant",
-            content: "Sorry, I encountered an error. Please try again.",
+            content: errorContent,
             timestamp: new Date(),
             isError: true,
           };
@@ -228,8 +233,8 @@ const useProjectChatStore = create(
         projectConversations: state.projectConversations,
         activeProjectConversations: state.activeProjectConversations,
       }),
-    }
-  )
+    },
+  ),
 );
 
 export default useProjectChatStore;
